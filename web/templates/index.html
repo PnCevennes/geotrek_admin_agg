@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+        <h1>Geotrek aggregator</h1>
+        <div class="card">
+            <div class="card-body bg-info text-white">
+                    <a class="card-link text-white" data-toggle="collapse" href="#collapseResults">Mapping</a>
+                </div>
+
+            <div  id="collapseResults" class="collapse show card-body">
+                <table id="results_group" class="display table table-striped table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            {% for cel in display_col %}
+                                <th>{{cel}}</th>
+                            {% endfor%}
+                            <th>destination</th>
+                            <th>actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in correspondances %}
+                        <tr id="demande-{{row['id']}}">
+                            {% for cel in display_col %}
+                                <td>{{row[cel]}}</td> 
+                            {% endfor%}
+                            
+                            <td> 
+                                {% if  row["id_destination"] %}
+                                    {{ voc_data[row["table_origin"]][row["id_destination"]] }}
+                                {% endif %}
+                            </td>
+
+                            <td><a class="btn btn-primary" href="{{ url_for('mapping_app.edit_mapping',id = row['id'] ) }}">edit</a></td>
+                            
+                        </tr>
+                        {% endfor%}
+                    </tbody>
+                    <tfoot>
+                        <tr> 
+                            {% for cel in display_col %}
+                                <th>{{cel}}</th>
+                            {% endfor%}
+                            <th>destination</th>
+                            <th>actions</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Setup - add a text input to each footer cell
+        $('#results_group tfoot th').each( function () {
+            var title = $(this).text();
+            $(this).html( '<input type="text" placeholder="Filtre '+title+'" />' );
+        } );
+
+        var table = $('#results_group').DataTable({
+            dom: 'Bfrtip',
+            buttons: [
+                'copy', 'csv', 'colvis'
+            ]
+        });
+
+        table.buttons().container()
+            .appendTo( '#example_wrapper .col-md-6:eq(0)' );
+
+        // Apply the search
+        table.columns().every( function () {
+            var that = this;
+
+            $( 'input', this.footer() ).on( 'keyup change', function () {
+                if ( that.search() !== this.value ) {
+                    that
+                        .search( this.value )
+                        .draw();
+                }
+            } );
+        } );
+    });
+</script>
+
+{% endblock %}

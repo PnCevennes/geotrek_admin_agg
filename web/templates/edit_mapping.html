@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>Modification mapping </h1>
+    <div class="card">
+        <h2>{{el_mapping.table_origin}} - {{el_mapping.label_origin}}</h2>
+        <form action = "{{ url_for('mapping_app.edit_mapping',id = el_mapping.id ) }}" method = "POST">
+            <select class="form-control" id="new_mapping" name="new_mapping">
+                <option value="None" {% if None == el_mapping.id_destination %} selected="selected" {% endif %}>
+                    None
+                </option>
+                {% for key in voc_data[el_mapping.table_origin] %}
+                <option value="{{key}}" {% if key == el_mapping.id_destination %} selected="selected" {% endif %}>
+                {{voc_data[el_mapping.table_origin][key]}}
+                </option>
+                {% endfor %}
+            </select>
+            <input type = "submit" class="btn-primary" value="Modifier"/>
+        </form>
+    </div>
+{% endblock %}
