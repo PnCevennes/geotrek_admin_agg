@@ -1,9 +1,12 @@
 
 from geotrek_agg.env import COR_TABLE
-from geotrek_agg.models import CommonCorrespondances
+from geotrek_agg.models import GeotrekAggCorrespondances
+
 
 def insert_cor_data(DB, db_source, cor_table, fields):
-
+    """
+        Insertion des données dans la table geotrekagg_correspondances
+    """
     sql = """
         INSERT INTO public.geotrekagg_correspondances
             (bdd_source, table_origin, id_origin, label_origin)
@@ -16,7 +19,10 @@ def insert_cor_data(DB, db_source, cor_table, fields):
 
 
 def auto_mapping(DB, db_source, cor_table, fields):
-
+    """
+        mapping automatique des nomenclatures
+         dans la table geotrekagg_correspondances
+    """
     sql = """
         UPDATE public.geotrekagg_correspondances c SET id_destination = i.id
         FROM public.{cor_table} i
@@ -27,7 +33,17 @@ def auto_mapping(DB, db_source, cor_table, fields):
     except Exception as e:
         print(e)
 
+
 def get_all_cor_data(DB):
+    """
+        Récupération de l'ensemble des données de type "nomenclature"
+
+    Args:
+        DB ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     sql = []
     for c in COR_TABLE:
         sql.append(
@@ -36,26 +52,56 @@ def get_all_cor_data(DB):
             )
         )
     query = ' UNION '.join(sql)
-
-    data = DB.session.connection().execute(query)
+    try:
+        data = DB.session.connection().execute(query)
+    except Exception as e:
+        return []
     return data
 
+
 def get_structured_cor_data(DB):
+    """
+       Récupération et mise en forme de l'ensemble des données
+       de geotrekagg_correspondances
+
+    Args:
+        DB ([type]): [description]
+
+    Returns:
+        [type]: [description]
+    """
     voc_data = get_all_cor_data(DB)
     structured_voc_data = {}
     for voc in voc_data:
         if not voc[0] in structured_voc_data:
             structured_voc_data[voc[0]] = {}
-        structured_voc_data[voc[0]][voc[1]] = voc[2] 
+        structured_voc_data[voc[0]][voc[1]] = voc[2]
     return structured_voc_data
 
 
 def get_mapping_el(DB, id):
-    data = DB.session.query(CommonCorrespondances).filter_by(id = id).one()
+    """
+        Récupération d'un élément de GeotrekAggCorrespondances
+
+    Args:
+        DB ([type]): [description]
+        id (int): identifiant de l'élément
+
+    Returns:
+        [type]: [description]
+    """
+    data = DB.session.query(GeotrekAggCorrespondances).filter_by(id = id).one()
     return data
 
 
 def update_cor_data(DB, id, new_mapping_id=None):
+    """
+        Mise à jour de l'élément de mapping
+    Args:
+        DB ([type]): [description]
+        id (int): identifiant de l'élément
+        new_mapping_id (int, optional): identifiant de l'élément dans la base aggrégator. Defaults to None.
+    """
     data = get_mapping_el(DB, id)
     data.id_destination = new_mapping_id
     try:

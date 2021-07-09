@@ -1,117 +1,111 @@
-# coding: utf-8
-
-
 # Insertion CORE_TOPOLOGY (trek et poi)
 core_topology="""
-INSERT INTO core_topology
-	(id_origine, date_insert, date_update, deleted, geom_3d, length, ascent, descent,
-	min_elevation, max_elevation, slope, "offset", kind, geom, geom_need_update, sourceportal_id)
-SELECT
-	p.id, date_insert, date_update, deleted, geom_3d, length, ascent, descent,
-	min_elevation, max_elevation, slope, "offset", kind, geom, geom_need_update, c.id
-FROM {source}.core_topology p
-JOIN common_sourceportal c ON (kind ILIKE 'poi' OR kind ILIKE 'trek') AND c."name" ILIKE '{source}';
+	INSERT INTO core_topology
+		(eid, date_insert, date_update, deleted, geom_3d, length, ascent, descent,
+		min_elevation, max_elevation, slope, "offset", kind, geom, geom_need_update)
+	SELECT
+		'{source}_' || p.id, date_insert, date_update, deleted, geom_3d, length, ascent, descent,
+		min_elevation, max_elevation, slope, "offset", kind, geom, geom_need_update
+	FROM {source}.core_topology p;
 """
 
 # Insertion TREKKING_POI
 trekking_poi="""
-INSERT INTO trekking_poi
-	(published, publication_date, "name", review,
-	topo_object_id, description, eid, structure_id, type_id,
-	published_fr, published_en, description_fr,
-	description_en, name_fr, name_en,
-	id_origine, sourceportal_id)
-SELECT
-	published, publication_date, "source"."name", review,
-	ct.id, description, eid, st.id, tp.id,
-	published_fr, published_en, description_fr,
-	description_en, name_fr, name_en,
-	ct.id_origine, csp.id
-FROM {source}.trekking_poi "source"
-LEFT JOIN core_topology ct ON ct.id_origine = "source".topo_object_id
-LEFT JOIN common_sourceportal csp ON csp."name" ILIKE '{source}'
-LEFT JOIN (SELECT a.id, cc.* FROM authent_structure a
-			JOIN common_correspondances cc
-			ON cc.table_name ILIKE 'authent_structure' AND a."name" ILIKE cc.name_new) st
-ON st.bdd_source ILIKE csp."name" AND "source".structure_id = st.id_old::integer
-LEFT JOIN (SELECT a.id, cc.* FROM trekking_poitype a
-		   LEFT JOIN common_correspondances cc
-		   ON cc.table_name ILIKE 'trekking_poitype' AND a."label" ILIKE cc.name_new) tp
-ON tp.bdd_source ILIKE csp."name" AND "source".type_id = tp.id_old::integer;
+	INSERT INTO trekking_poi
+		(published, publication_date, "name", review,
+		topo_object_id, description, eid, structure_id, type_id,
+		published_fr, published_en, description_fr,
+		description_en, name_fr, name_en)
+	SELECT
+		published, publication_date, "source"."name", review,
+		ct.id, description, '{source}_' || "source".id, st.id, tp.id,
+		published_fr, published_en, description_fr,
+		description_en, name_fr, name_en
+	FROM {source}.trekking_poi "source"
+	LEFT JOIN core_topology ct ON ct.eid = "'{source}_' || source".topo_object_id
+	LEFT JOIN common_sourceportal csp ON csp."name" ILIKE '{source}'
+	LEFT JOIN (SELECT a.id, cc.* FROM authent_structure a
+				JOIN common_correspondances cc
+				ON cc.table_name ILIKE 'authent_structure' AND a."name" ILIKE cc.name_new) st
+	ON st.bdd_source ILIKE csp."name" AND "source".structure_id = st.id_old::integer
+	LEFT JOIN (SELECT a.id, cc.* FROM trekking_poitype a
+			LEFT JOIN common_correspondances cc
+			ON cc.table_name ILIKE 'trekking_poitype' AND a."label" ILIKE cc.name_new) tp
+	ON tp.bdd_source ILIKE csp."name" AND "source".type_id = tp.id_old::integer;
 """
 
 # Insertion TREKKING_TREK
 trekking_trek="""
-INSERT INTO trekking_trek
-	(published, publication_date, "name", review, topo_object_id, departure, arrival,
-	description_teaser, description, ambiance, "access", disabled_infrastructure, duration,
-	advised_parking, parking_location, public_transport, advice, points_reference,
-	eid, eid2, difficulty_id, practice_id, route_id, structure_id, reservation_id, reservation_system_id,
-	arrival_fr, arrival_en, ambiance_fr, ambiance_en, departure_fr, departure_en, access_fr, access_en,
-	advised_parking_fr, advised_parking_en, disabled_infrastructure_fr, disabled_infrastructure_en,
-	published_fr, published_en, advice_fr, advice_en, name_fr, name_en,
-	public_transport_fr, public_transport_en, description_fr, description_en,
-	description_teaser_fr, description_teaser_en, id_origine, sourceportal_id)
-SELECT
-	published, publication_date, "source"."name", review, ct.id, departure, arrival, description_teaser,
-	"source".description, ambiance, "access", disabled_infrastructure, duration,
-	advised_parking, parking_location,public_transport, advice, points_reference,
-	eid, eid2, dl.id, tp.id, tr.id, st.id, reservation_id, crs.id,
-	arrival_fr, arrival_en, ambiance_fr,ambiance_en, departure_fr, departure_en, access_fr, access_en,
-	advised_parking_fr, advised_parking_en, disabled_infrastructure_fr, disabled_infrastructure_en,
-	published_fr, published_en, advice_fr, advice_en, "source".name_fr, "source".name_en,
-	public_transport_fr, public_transport_en, "source".description_fr, "source".description_en,
-	description_teaser_fr, description_teaser_en, topo_object_id, csp.id
-FROM {source}.trekking_trek "source"
-LEFT JOIN common_sourceportal csp ON csp."name" ILIKE '{source}'
-LEFT JOIN core_topology ct ON ct.id_origine = "source".topo_object_id
-LEFT JOIN (SELECT a.id, cc.* FROM trekking_difficultylevel a
-		   LEFT JOIN common_correspondances cc
-		   ON cc.table_name ILIKE 'trekking_difficultylevel' AND a.difficulty ILIKE cc.name_new) dl
-ON dl.bdd_source ILIKE csp."name" AND "source".difficulty_id = dl.id_old::integer
-LEFT JOIN (SELECT a.id, cc.* FROM trekking_practice a
-		   LEFT JOIN common_correspondances cc
-		   ON cc.table_name ILIKE 'trekking_practice' AND a."name" ILIKE cc.name_new) tp
-ON tp.bdd_source ILIKE csp."name" AND "source".practice_id = tp.id_old::integer
-LEFT JOIN (SELECT a.id, cc.* FROM trekking_route a
-		   LEFT JOIN common_correspondances cc
-		   ON cc.table_name ILIKE 'trekking_route' AND a.route ILIKE cc.name_new) tr
-ON tr.bdd_source ILIKE csp."name" AND "source".route_id = tr.id_old::integer
-LEFT JOIN (SELECT a.id, cc.* FROM authent_structure a
-		   JOIN common_correspondances cc
-		   ON cc.table_name ILIKE 'authent_structure' AND a."name" ILIKE cc.name_new) st
-ON st.bdd_source ILIKE csp."name" AND "source".structure_id = st.id_old::integer
-LEFT JOIN (SELECT a.id, cc.* FROM common_reservationsystem a
-		   JOIN common_correspondances cc
-		   ON cc.table_name ILIKE 'common_reservationsystem' AND a."name" ILIKE cc.name_new) crs
-ON crs.bdd_source ILIKE csp."name" AND "source".structure_id = crs.id_old::integer
+	INSERT INTO trekking_trek
+		(published, publication_date, "name", review, topo_object_id, departure, arrival,
+		description_teaser, description, ambiance, "access", disabled_infrastructure, duration,
+		advised_parking, parking_location, public_transport, advice, points_reference,
+		eid, eid2, difficulty_id, practice_id, route_id, structure_id, reservation_id, reservation_system_id,
+		arrival_fr, arrival_en, ambiance_fr, ambiance_en, departure_fr, departure_en, access_fr, access_en,
+		advised_parking_fr, advised_parking_en, disabled_infrastructure_fr, disabled_infrastructure_en,
+		published_fr, published_en, advice_fr, advice_en, name_fr, name_en,
+		public_transport_fr, public_transport_en, description_fr, description_en,
+		description_teaser_fr, description_teaser_en, id_origine, sourceportal_id)
+	SELECT
+		published, publication_date, "source"."name", review, ct.id, departure, arrival, description_teaser,
+		"source".description, ambiance, "access", disabled_infrastructure, duration,
+		advised_parking, parking_location,public_transport, advice, points_reference,
+		eid, eid2, dl.id, tp.id, tr.id, st.id, reservation_id, crs.id,
+		arrival_fr, arrival_en, ambiance_fr,ambiance_en, departure_fr, departure_en, access_fr, access_en,
+		advised_parking_fr, advised_parking_en, disabled_infrastructure_fr, disabled_infrastructure_en,
+		published_fr, published_en, advice_fr, advice_en, "source".name_fr, "source".name_en,
+		public_transport_fr, public_transport_en, "source".description_fr, "source".description_en,
+		description_teaser_fr, description_teaser_en, topo_object_id, csp.id
+	FROM {source}.trekking_trek "source"
+	LEFT JOIN common_sourceportal csp ON csp."name" ILIKE '{source}'
+	LEFT JOIN core_topology ct ON ct.id_origine = "source".topo_object_id
+	LEFT JOIN (SELECT a.id, cc.* FROM trekking_difficultylevel a
+			LEFT JOIN common_correspondances cc
+			ON cc.table_name ILIKE 'trekking_difficultylevel' AND a.difficulty ILIKE cc.name_new) dl
+	ON dl.bdd_source ILIKE csp."name" AND "source".difficulty_id = dl.id_old::integer
+	LEFT JOIN (SELECT a.id, cc.* FROM trekking_practice a
+			LEFT JOIN common_correspondances cc
+			ON cc.table_name ILIKE 'trekking_practice' AND a."name" ILIKE cc.name_new) tp
+	ON tp.bdd_source ILIKE csp."name" AND "source".practice_id = tp.id_old::integer
+	LEFT JOIN (SELECT a.id, cc.* FROM trekking_route a
+			LEFT JOIN common_correspondances cc
+			ON cc.table_name ILIKE 'trekking_route' AND a.route ILIKE cc.name_new) tr
+	ON tr.bdd_source ILIKE csp."name" AND "source".route_id = tr.id_old::integer
+	LEFT JOIN (SELECT a.id, cc.* FROM authent_structure a
+			JOIN common_correspondances cc
+			ON cc.table_name ILIKE 'authent_structure' AND a."name" ILIKE cc.name_new) st
+	ON st.bdd_source ILIKE csp."name" AND "source".structure_id = st.id_old::integer
+	LEFT JOIN (SELECT a.id, cc.* FROM common_reservationsystem a
+			JOIN common_correspondances cc
+			ON cc.table_name ILIKE 'common_reservationsystem' AND a."name" ILIKE cc.name_new) crs
+	ON crs.bdd_source ILIKE csp."name" AND "source".structure_id = crs.id_old::integer
 """
 
 
 
 # Insertion TREKKING_ORDEREDTREKCHILD
 trekking_orderedtrekchild="""
-INSERT INTO trekking_orderedtrekchild
-	("order", child_id, parent_id, id_origine, sourceportal_id)
-SELECT
-	"order", ct1.id, ct2.id, "source".id, csp.id
-FROM {source}.trekking_orderedtrekchild "source"
-LEFT JOIN common_sourceportal csp ON csp."name" ILIKE '{source}'
-LEFT JOIN core_topology ct1 ON ct1.id_origine = "source".child_id AND ct1.sourceportal_id = csp.id
-LEFT JOIN core_topology ct2 ON ct2.id_origine = "source".parent_id AND ct2.sourceportal_id = csp.id;
+	INSERT INTO trekking_orderedtrekchild
+		("order", child_id, parent_id, id_origine, sourceportal_id)
+	SELECT
+		"order", ct1.id, ct2.id, "source".id, csp.id
+	FROM {source}.trekking_orderedtrekchild "source"
+	LEFT JOIN common_sourceportal csp ON csp."name" ILIKE '{source}'
+	LEFT JOIN core_topology ct1 ON ct1.id_origine = "source".child_id AND ct1.sourceportal_id = csp.id
+	LEFT JOIN core_topology ct2 ON ct2.id_origine = "source".parent_id AND ct2.sourceportal_id = csp.id;
 """
 
 
 # Insertion TREKKING_TREKRELATIONSHIP
 trekking_trekrelationship="""
-INSERT INTO trekking_trekrelationship
-	(has_common_departure, has_common_edge, is_circuit_step, trek_a_id, trek_b_id, id_origine, sourceportal_id)
-SELECT
-	has_common_departure, has_common_edge, is_circuit_step, ct1.id, ct2.id, "source".id, csp.id
-FROM {source}.trekking_trekrelationship "source"
-LEFT JOIN common_sourceportal csp ON csp."name" ILIKE '{source}'
-LEFT JOIN core_topology ct1 ON ct1.id_origine = "source".trek_a_id AND ct1.sourceportal_id = csp.id
-LEFT JOIN core_topology ct2 ON ct2.id_origine = "source".trek_b_id AND ct2.sourceportal_id = csp.id;
+	INSERT INTO trekking_trekrelationship
+		(has_common_departure, has_common_edge, is_circuit_step, trek_a_id, trek_b_id, id_origine, sourceportal_id)
+	SELECT
+		has_common_departure, has_common_edge, is_circuit_step, ct1.id, ct2.id, "source".id, csp.id
+	FROM {source}.trekking_trekrelationship "source"
+	LEFT JOIN common_sourceportal csp ON csp."name" ILIKE '{source}'
+	LEFT JOIN core_topology ct1 ON ct1.id_origine = "source".trek_a_id AND ct1.sourceportal_id = csp.id
+	LEFT JOIN core_topology ct2 ON ct2.id_origine = "source".trek_b_id AND ct2.sourceportal_id = csp.id;
 """
 
 
@@ -184,7 +178,7 @@ ON ttn.bdd_source ILIKE csp."name" AND "source".treknetwork_id = ttn.id_old::int
 # Insertion TREKKING_TREK_PORTAL
 trekking_trek_portal="""
 INSERT INTO trekking_trek_portal
-	(trek_id, targetportal_id, id_origine, sourceportal_id)	
+	(trek_id, targetportal_id, id_origine, sourceportal_id)
 SELECT
 	ct.id, ctp.id, "source".id, csp.id
 FROM {source}.trekking_trek_portal "source"
@@ -200,7 +194,7 @@ ON ctp.bdd_source ILIKE csp."name" AND "source".targetportal_id = ctp.id_old::in
 # Insertion TREKKING_TREK_SOURCE
 trekking_trek_source="""
 INSERT INTO trekking_trek_source
-	(trek_id, recordsource_id, id_origine, sourceportal_id)		
+	(trek_id, recordsource_id, id_origine, sourceportal_id)
 SELECT
 	ct.id, ctp.id, "source".id, csp.id
 FROM {source}.trekking_trek_source "source"
@@ -247,7 +241,7 @@ ON twl.bdd_source ILIKE csp."name" AND "source".category_id = twl.id_old::intege
 # Insertion TREKKING_TREK_WEB_LINKS
 trekking_trek_web_links="""
 INSERT INTO trekking_trek_web_links
-	(trek_id, weblink_id, id_origine, sourceportal_id)	
+	(trek_id, weblink_id, id_origine, sourceportal_id)
 SELECT
 	ct.id, twl.id, "source".id, csp.id
 FROM {source}.trekking_trek_web_links "source"
@@ -289,7 +283,7 @@ LEFT JOIN trekking_poi p ON p.id_origine = "source".poi_id AND p.sourceportal_id
 feedback_report="""
 INSERT INTO feedback_report
 	(date_insert, date_update, email, "comment", geom, category_id, status_id,
-	activity_id, problem_magnitude_id, related_trek_id, id_origine, sourceportal_id)	
+	activity_id, problem_magnitude_id, related_trek_id, id_origine, sourceportal_id)
 SELECT
 	"source".date_insert, "source".date_update, email, "comment", "source".geom, frc.id, frs.id,
 	fra.id, frp.id, ct.id, "source".id, csp.id
@@ -298,7 +292,7 @@ LEFT JOIN common_sourceportal csp ON csp."name" ILIKE '{source}'
 LEFT JOIN core_topology ct ON ct.id_origine = "source".related_trek_id AND ct.sourceportal_id = csp.id
 LEFT JOIN (SELECT a.id, cc.* FROM feedback_reportcategory a
 			JOIN common_correspondances cc
-			ON cc.table_name ILIKE 'feedback_reportcategory' AND a."label" ILIKE cc.name_new) frc			
+			ON cc.table_name ILIKE 'feedback_reportcategory' AND a."label" ILIKE cc.name_new) frc
 ON frc.bdd_source ILIKE csp."name" AND "source".category_id = frc.id_old::integer
 LEFT JOIN (SELECT a.id, cc.* FROM feedback_reportstatus a
 			JOIN common_correspondances cc
@@ -537,7 +531,7 @@ auth_user="""
 INSERT INTO auth_user
 	("password", last_login, is_superuser, username,
 	first_name, last_name, email, is_staff, is_active,
-	date_joined, id_origine, sourceportal_id)	
+	date_joined, id_origine, sourceportal_id)
 SELECT
 	"password", last_login, is_superuser, "source".username,
 	first_name, last_name, email, is_staff, is_active,
@@ -555,7 +549,7 @@ INSERT INTO public.common_attachment
 	titre, legende, marque, date_insert, date_update,
 	content_type_id, creator_id, filetype_id,
 	attachment_link, creation_date, is_image,
-	id_origine, sourceportal_id)	
+	id_origine, sourceportal_id)
 SELECT
 	object_id, attachment_file, attachment_video, auteur,
 	titre, legende, marque, date_insert, date_update,

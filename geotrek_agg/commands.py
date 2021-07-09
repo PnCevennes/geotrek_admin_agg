@@ -8,7 +8,7 @@ from geotrek_agg.env import COR_TABLE
 @with_appcontext
 def create_db_schema(): 
     from geotrek_agg.app import DB
-    from geotrek_agg.models import CommonCorrespondances
+    from geotrek_agg.models import GeotrekAggCorrespondances
     DB.create_all()
 
 
@@ -20,6 +20,18 @@ def import_mapping():
         print(f"Import table {c}")
         insert_cor_data(DB, 'pne', c, COR_TABLE[c]['label_field'])
         auto_mapping(DB, 'pne', c, COR_TABLE[c]['label_field'])
+
+
+@click.command("populate_gta") 
+@with_appcontext
+def populate_gta(): 
+    from geotrek_agg.app import DB
+    from .import_content.sql import queries
+    source = "pne"
+    for query in queries:
+        DB.engine.execute(query.format(source=source))
+        print('Insertion données effectuée')            
+        
 
 
 

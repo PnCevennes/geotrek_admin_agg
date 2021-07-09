@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, request, redirect , url_for
 
 from geotrek_agg.app import DB
-from geotrek_agg.models import CommonCorrespondances
+from geotrek_agg.models import GeotrekAggCorrespondances
 from geotrek_agg.utils import get_structured_cor_data, get_mapping_el, update_cor_data
 
 
@@ -11,16 +11,17 @@ mapping_app = Blueprint('mapping_app', __name__)
 @mapping_app.route('/')
 def render_mapping():
     try:
-        data = CommonCorrespondances.query.all()
+        data = GeotrekAggCorrespondances.query.all()
     except Exception as e:
-        print(e)
+        data = []
+        print("ERROR")
 
     structured_voc_data = get_structured_cor_data(DB) 
     
     return render_template(
         'index.html', 
         correspondances=data, 
-        col=CommonCorrespondances.__table__.columns.keys(), 
+        col=GeotrekAggCorrespondances.__table__.columns.keys(), 
         display_col=("bdd_source", "table_origin", "label_origin"), 
         voc_data=structured_voc_data
     )
