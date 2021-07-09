@@ -1,3 +1,5 @@
+### Pas à jour avec uuids ni avec fonctions remplaçant les jointures
+
 # Insertion CORE_TOPOLOGY (trek et poi)
 core_topology="""
 	INSERT INTO core_topology
