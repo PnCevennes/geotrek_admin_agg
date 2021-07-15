@@ -4,17 +4,17 @@ from flask.cli import with_appcontext
 
 from geotrek_agg.env import COR_TABLE
 
-@click.command("create_db_schema") 
+@click.command("create_db_schema")
 @with_appcontext
-def create_db_schema(): 
+def create_db_schema():
     from geotrek_agg.app import DB
     from geotrek_agg.models import GeotrekAggCorrespondances
     DB.create_all()
 
 
-@click.command("import_mapping") 
+@click.command("import_mapping")
 @with_appcontext
-def import_mapping(): 
+def import_mapping():
     from geotrek_agg.app import DB
     for c in COR_TABLE:
         print(f"Import table {c}")
@@ -22,16 +22,32 @@ def import_mapping():
         auto_mapping(DB, 'pne', c, COR_TABLE[c]['label_field'])
 
 
-@click.command("populate_gta") 
+@click.command("populate_gta")
 @with_appcontext
-def populate_gta(): 
+def populate_gta():
     from geotrek_agg.app import DB
     from .import_content.sql import queries
+    from geotrek_agg.env import IMPORT_MODEL
+    from geotrek_agg.utils import build_sql_insert
     source = "pne"
-    for query in queries:
-        DB.engine.execute(query.format(source=source))
-        print('Insertion données effectuée')            
-        
+    # TODO TEST_BEFORE_IMPORT FIRST
+
+    # TODO clean source
+
+    # Import des données table par table
+    for table in IMPORT_MODEL:
+        print(f"Import table {table}")
+        try:
+            build_sql_insert(
+                DB=DB,
+                db_source=source,
+                table_name=table,
+                table_data=IMPORT_MODEL[table]
+            )
+            print('Insertion données effectuée')
+        except Exception as e:
+            print('Erreur', e)
+            exit
 
 
 

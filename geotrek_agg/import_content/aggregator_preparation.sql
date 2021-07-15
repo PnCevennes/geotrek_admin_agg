@@ -6,7 +6,22 @@ CREATE TABLE common_sourceportal
 INSERT INTO common_sourceportal("name") VALUES
 ('pnc'),('pne');
 
-
+CREATE OR REPLACE FUNCTION public.geotrekagg_get_id_correspondance(_initial_id integer, _table_origin character varying, _db_source character varying)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+BEGIN
+    RETURN  (
+		SELECT id_destination
+     FROM geotrekagg_correspondances gc
+	 WHERE
+			id_origin = _initial_id
+			AND table_origin = _table_origin
+			AND bdd_source = _db_source
+	);
+END;
+$function$
+;
 ----INSTALLER EXTENSION POUR GENERER UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
@@ -86,29 +101,29 @@ CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 CREATE SERVER IF NOT EXISTS server_pnc
         FOREIGN DATA WRAPPER postgres_fdw
         OPTIONS (host 'localhost', port '5432', dbname 'geotrek_pnc');
-       
+
 CREATE USER MAPPING FOR dbadmin
     SERVER server_pnc
     OPTIONS (user 'dbadmin', password '24121994');
 
 --DROP SCHEMA IF EXISTS pnc;
 CREATE SCHEMA pnc;
-IMPORT FOREIGN SCHEMA public 
+IMPORT FOREIGN SCHEMA public
     FROM SERVER server_pnc
     INTO pnc;
-        
+
 --DROP SERVER IF EXISTS server_pne CASCADE;
 CREATE SERVER IF NOT EXISTS server_pne
         FOREIGN DATA WRAPPER postgres_fdw
         OPTIONS (host 'localhost', port '5432', dbname 'geotrek_pne');
-       
+
 CREATE USER MAPPING FOR dbadmin
     SERVER server_pne
     OPTIONS (user 'dbadmin', password '24121994');
 
 --DROP SCHEMA IF EXISTS pne;
 CREATE SCHEMA pne;
-IMPORT FOREIGN SCHEMA public 
+IMPORT FOREIGN SCHEMA public
     FROM SERVER server_pne
     INTO pne;
 
