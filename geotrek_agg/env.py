@@ -36,6 +36,12 @@ TEST_BEFORE_IMPORT =  {
     },
 }
 
+
+# Liste "ordonnée" des tables à importer
+# excluded : () liste des champs à exclure de l'import TODO devrait être une liste voir
+#   si l'absence de la clé ne pourrait pas juste signaler que la colonne à exclure est id
+# correspondances_keys : table_dictionaire = liste des champs relié à un élément de "vocabulaire"
+# foreign_key TODO gestion des clés étrangères de type table d'import (exemple topo_object_id)
 IMPORT_MODEL = {
     "core_topology" : {
         "excluded" : "id"

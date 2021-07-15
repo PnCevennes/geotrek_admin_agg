@@ -29,7 +29,7 @@ def populate_gta():
     from .import_content.sql import queries
     from geotrek_agg.env import IMPORT_MODEL
     from geotrek_agg.utils import build_sql_insert
-    source = "pne"
+    source = "pnc"
     # TODO TEST_BEFORE_IMPORT FIRST
 
     # TODO clean source
