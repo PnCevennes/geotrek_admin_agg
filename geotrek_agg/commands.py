@@ -28,25 +28,29 @@ def populate_gta():
     from geotrek_agg.app import DB
     from .import_content.sql import queries
     from geotrek_agg.env import IMPORT_MODEL
-    from geotrek_agg.utils import build_sql_insert
-    source = "pnc"
+    from geotrek_agg.mapping_object import MappingObject
+    source = "pne"
     # TODO TEST_BEFORE_IMPORT FIRST
 
     # TODO clean source
 
     # Import des données table par table
     for table in IMPORT_MODEL:
-        print(f"Import table {table}")
+        print(f" -- Import table {table}")
+        mapping_object = MappingObject(
+            DB=DB,
+            data_source=source,
+            table_name=table,
+            table_def=IMPORT_MODEL[table]
+        )
         try:
-            build_sql_insert(
-                DB=DB,
-                db_source=source,
-                table_name=table,
-                table_data=IMPORT_MODEL[table]
-            )
-            print('Insertion données effectuée')
+            sql_d = mapping_object.generate_sql_delete()
+            print(sql_d)
+            sql_i = mapping_object.generate_sql_insert()
+            print(sql_i)
         except Exception as e:
             print('Erreur', e)
+            raise(e)
             exit
 
 

@@ -6,7 +6,11 @@ CREATE TABLE common_sourceportal
 INSERT INTO common_sourceportal("name") VALUES
 ('pnc'),('pne');
 
-CREATE OR REPLACE FUNCTION public.geotrekagg_get_id_correspondance(_initial_id integer, _table_origin character varying, _db_source character varying)
+CREATE OR REPLACE FUNCTION public.geotrekagg_get_id_correspondance(
+	_initial_id integer,
+	_table_origin character varying,
+	_db_source character varying
+)
  RETURNS integer
  LANGUAGE plpgsql
 AS $function$
@@ -22,6 +26,54 @@ BEGIN
 END;
 $function$
 ;
+
+CREATE OR REPLACE FUNCTION public.geotrekagg_get_foreign_key(
+	_filter_value varchar, -- Valeur pour filtrer et retrouver la données
+
+	_table_origin character varying,  -- TABLE SOURCE de la donnée
+	_table_reference character varying, -- TABLE de jointure
+
+	_col_origin character varying, -- Colonne de la TABLE source
+	_col_reference character varying, -- Colonne de la TABLE de jointure
+
+	_db_source character VARYING -- nom de la SOURCE
+)
+ RETURNS integer
+ LANGUAGE plpgsql
+AS $function$
+DECLARE
+	_txt_sql TEXT;
+	_new_id int;
+BEGIN
+
+	_txt_sql := '
+	SELECT DISTINCT  ct."' ||_col_reference || '"
+	FROM '|| _db_source ||'."' || _table_origin || '"  p
+	JOIN '|| _db_source ||'."' || _table_reference || '" t
+	ON t."' ||_col_reference || '" = p."' ||_col_origin || '"
+	JOIN "' || _table_reference || '" ct
+	ON t.uuid = ct.uuid
+	WHERE p."' ||_col_origin || '"::varchar = ''' || _filter_value || '''
+	';
+
+	--RAISE NOTICE '%', _txt_sql;
+	EXECUTE _txt_sql into _new_id;
+
+    RETURN _new_id;
+END;
+$function$
+;
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+ALTER TABLE core_topology ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE tourism_informationdesk ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE feedback_report ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE tourism_touristiccontent ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE tourism_touristicevent ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE common_attachment ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+
+
 ----INSTALLER EXTENSION POUR GENERER UUID
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 

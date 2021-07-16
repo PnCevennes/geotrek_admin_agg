@@ -111,50 +111,6 @@ def update_cor_data(DB, id, new_mapping_id=None):
         raise(e)
 
 
-
-def build_sql_insert(DB, db_source, table_name, table_data):
-    """
-        Construction du sql de création des données
-
-    Args:
-        DB ([type]): [description]
-        db_source ([type]): [description]
-        table_name ([type]): [description]
-        table_data ([type]): [description]
-
-    """
-    cols = get_common_col_name(DB, db_source, table_name)
-
-    if "excluded" in table_data:
-        cols = list(filter(lambda col: col not in table_data["excluded"], cols))
-    formated_cols = ','.join(['"{}"'.format(c) for c in cols])
-
-    SQL_I = f"INSERT INTO {table_name} ({formated_cols})"
-
-    # build select
-    # filter by correspondances_keys
-    select_col = []
-    for col in cols:
-        if col in table_data.get("correspondances_keys",  []):
-            select_col.append(
-                "geotrekagg_get_id_correspondance( {col}, '{table}', '{db_source}' ) as col".format(
-                    col=col,
-                    table=table_data["correspondances_keys"][col],
-                    db_source=db_source
-                )
-            )
-        else:
-            select_col.append('"{}"'.format(col))
-
-    formated_insert_col = ','.join(select_col)
-    SQL_S = f"SELECT {formated_insert_col} FROM {db_source}.{table_name}"
-
-    try:
-        DB.engine.execute(SQL_I + " " + SQL_S)
-    except Exception as e:
-        raise(e)
-
-
 def get_common_col_name(DB, db_source, table_name):
     """
         Récupération des colonnes communes aux deux modèles
