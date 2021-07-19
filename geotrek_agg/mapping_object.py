@@ -1,14 +1,8 @@
 
 from geotrek_agg.utils import get_common_col_name
 
-class MappingObject():
 
-    _DB = None
-    _data_source = None
-    _table_name = None
-    _table_def = None
-    _is_cor = False
-    _cor_list = []
+class MappingObject(object):
 
     def __init__(self, DB, data_source, table_name, table_def, is_cor=False):
         self._DB = DB
@@ -16,6 +10,8 @@ class MappingObject():
         self._table_name = table_name
         self._table_def = table_def
         self._is_cor = is_cor
+        self._cor_list = []
+        self.build_object()
 
     def build_object(self):
         # build cor table
@@ -37,17 +33,21 @@ class MappingObject():
         Returns:
             MappingObject: table de corrélation
         """
+        parent_table = {
+            "table": self._table_name,
+            "col": self._table_def["primary_key"]
+        }
+
         cor_table_data = self._table_def["cor_tables"][cor_table]
+        cor_table_data["parent_table"] = parent_table
         cor_table_data["foreign_keys"] = {
-            cor_table_data["key"]: {
-                "table": self._table_name,
-                "col": self._table_name["primary_key"]
-            }
+            cor_table_data["key"]: parent_table
         }
         cor_table_data["filters"] = {
             "not_null": [k for k in cor_table_data["correspondances_keys"]]
         }
         return MappingObject(
+            DB=self._DB,
             data_source=self._data_source,
             table_name=cor_table,
             table_def=cor_table_data,
@@ -126,39 +126,66 @@ class MappingObject():
 
         # build cor table
         cor_sql = []
-        for cor_table in self._cor_list:
+        for table_cor in self._cor_list:
             # TODO
-            cor_sql.append(cor_table.generate_sql_insert())
+            cor_sql.append(table_cor.generate_sql_insert())
 
         SQL_COR = " ".join(cor_sql)
 
         return f"{SQL_I} {SQL_S}; {SQL_COR}"
 
     def generate_sql_delete(self):
-            """
-             Construction du sql de suppression des données de la source
-
-            """
-            if self._is_cor:
-                # WITH to_del AS (
-                # 	SELECT p.topo_object_id  AS id_to_del
-                # 	FROM trekking_trek p
-                # 	JOIN pne.trekking_trek t
-                # 	ON p.uuid = t.uuid
-                # )
-                # DELETE FROM trekking_trek_networks p
-                # USING to_del
-                # WHERE p.trek_id = to_del.id_to_del
-                pass
-            else:
-                sql = []
-                sql.append(f"""
-                    DELETE FROM {self._table_name} p
-                    USING {self._data_source}.{self._table_name} t
-                    WHERE p.uuid = t.uuid;
-                """)
-                for cor in self._cor_list:
-                    sql.append(cor.generate_sql_delete())
-                sql = " ".join(sql)
+        """
+            Construction du sql de suppression des données de la source
+        """
+        if self._is_cor:
+            # Génération du code sql de deletion des tables de
+            #   correlations
+            return self._generate_cor_sql_delete()
+        else:
+            sql = []
+            for cor in self._cor_list:
+                sql.append(cor.generate_sql_delete())
+            sql.append(self._generate_simple_sql_delete())
+            sql = " ".join(sql)
 
             return sql
+
+    def _generate_cor_sql_delete(self):
+        """
+            Génération du code sql de deletion des tables de
+            correlations
+        """
+        parent_table = self._table_def["parent_table"]
+
+        sql = """
+            WITH to_del AS (
+                SELECT p.{parent_col_id} AS id_to_del
+                FROM {parent_table_name} p
+                JOIN {source}.{parent_table_name} t
+                ON p.uuid = t.uuid
+            )
+            DELETE FROM {table_name} p
+            USING to_del
+            WHERE p.{col_id} = to_del.id_to_del;
+        """.format(
+            parent_col_id=parent_table["col"],
+            parent_table_name=parent_table["table"],
+            source=self._data_source,
+            table_name=self._table_name,
+            col_id=self._table_def["key"]
+        )
+        return sql
+
+    def _generate_simple_sql_delete(self):
+        """
+            Génération du code sql de deletion des tables principales
+            ayant un uuid
+        """
+        # TODO : test uuid exists
+        sql = f"""
+            DELETE FROM {self._table_name} p
+            USING {self._data_source}.{self._table_name} t
+            WHERE p.uuid = t.uuid;
+        """
+        return sql

@@ -22,7 +22,7 @@ COR_TABLE = {
     'feedback_reportproblemmagnitude': {"label_field": "label"},
     'feedback_reportcategory': {"label_field": "label"},
     'tourism_touristiccontentcategory': {"label_field": "label"},
-    'common_filetype' :  {"label_field": "type"}
+    'common_filetype':  {"label_field": "type"}
 }
 
 
@@ -89,7 +89,7 @@ IMPORT_MODEL = {
             }
         },
         "cor_tables": {
-           "trekking_trek_accessibilities" : {
+           "trekking_trek_accessibilities": {
                "key": "trek_id",
                 "correspondances_keys": {
                     "accessibility_id": "trekking_accessibility",

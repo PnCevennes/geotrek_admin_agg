@@ -37,16 +37,16 @@ def populate_gta():
     # Import des données table par table
     for table in IMPORT_MODEL:
         print(f" -- Import table {table}")
-        mapping_object = MappingObject(
+        table_object = MappingObject(
             DB=DB,
             data_source=source,
             table_name=table,
             table_def=IMPORT_MODEL[table]
         )
         try:
-            sql_d = mapping_object.generate_sql_delete()
+            sql_d = table_object.generate_sql_delete()
             print(sql_d)
-            sql_i = mapping_object.generate_sql_insert()
+            sql_i = table_object.generate_sql_insert()
             print(sql_i)
         except Exception as e:
             print('Erreur', e)
