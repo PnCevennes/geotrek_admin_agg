@@ -22,6 +22,6 @@ Fonctionnalités:
                => faisable avec foreign_keys en théorie
 - deletion en cascade pour les tables de correlation
 - ajouter option source de la données dans commandes
-- + pleins de trucs
+- plus plein de trucs
 
 Documentation
