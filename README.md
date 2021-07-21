@@ -8,7 +8,7 @@ Pour le fonctionnement d'une agrégation, des étapes nécessaires sont décrite
 # Usage
 
 ```
-export FLASk_APP=app
+export FLASK_APP=app
 flask populate_gta # retourne les commandes sql d'insertion en base
 
 ```
