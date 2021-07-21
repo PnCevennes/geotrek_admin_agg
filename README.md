@@ -15,13 +15,13 @@ flask populate_gta # retourne les commandes sql d'insertion en base
 
 # TODO import des données
 CONCEPTION :
-       * use marshmallow for object definition
+- use marshmallow for object definition
 
 Fonctionnalités:
-    * gestion des tables de types trekking_trekrelationship
+- gestion des tables de types trekking_trekrelationship
                => faisable avec foreign_keys en théorie
-    * deletion en cascade pour les tables de correlation
-    * ajouter option source de la données dans commandes
-    * + pleins de trucs
+- deletion en cascade pour les tables de correlation
+- ajouter option source de la données dans commandes
+- + pleins de trucs
 
 Documentation
