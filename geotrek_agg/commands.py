@@ -4,22 +4,100 @@ from flask.cli import with_appcontext
 
 from geotrek_agg.env import COR_TABLE
 
+
 @click.command("create_db_schema")
 @with_appcontext
 def create_db_schema():
     from geotrek_agg.app import DB
-    from geotrek_agg.models import GeotrekAggCorrespondances
+    click.echo("Generate DB structure")
+    DB.drop_all()
     DB.create_all()
 
 
-@click.command("import_mapping")
+@click.command("add_source")
+@click.option('-n', '--name', 'name', required=True, type=str)
+@click.option('-h', '--host', 'host', required=True, type=str)
+@click.option('-p', '--port', 'port', type=int, default=5432, show_default=True)
+@click.option('-d', '--db_name', 'db_name', required=True, type=str)
+@click.option('-u', '--user', 'user', required=True, type=str)
+@click.option('-p', '--password', 'password', required=True, type=str)
+@click.option('-o', '--overwrite', 'overwrite', is_flag=True)
 @with_appcontext
-def import_mapping():
+def add_source(name, host, port, db_name,  user, password, overwrite):
+    """
+        Création d'une source pour l'aggrégateur
+
+        Args:
+            name ([string]): nom de la source
+            host ([string]): hote de la base geotrek
+            port ([int]): port de postgresql de l'hote
+            user ([string]): utilisateur (ayant des droits de lecture sur la base)
+            password ([string]): mot de passe de l'utilisateur
+    """
     from geotrek_agg.app import DB
+    from geotrek_agg.models import GeotrekAggSources
+    from geotrek_agg.utils import create_fdw_server, get_source
+
+    # Test if source exists
+    source = get_source(DB, name)
+    if source and not overwrite:
+        click.echo(f"La source {name} existe déjà. Pour la redéfinir utiliser l'option -o")
+        exit()
+
+    # Création du FDW
+    try:
+        create_fdw_server(
+            DB=DB,
+            name=name,
+            host=host,
+            port=port,
+            db_name=db_name,
+            user=user,
+            password=password
+        )
+        click.echo(f"Création du foreign data wrapper")
+    except Exception as e:
+        current_app.logger.error("Umpossible de créer le fdw", e.orig)
+        exit()
+
+    # Création d'une entrée dans la table des sources
+    if not source:
+        source = GeotrekAggSources(bdd_source=name)
+        DB.session.add(source)
+        try:
+            DB.session.commit()
+            click.echo(f"Création de la source dans la table GeotrekAggSources")
+        except Exception as e:
+            DB.session.rollback()
+            current_app.logger.error("Impossible de créer bdd_source", str(e))
+
+
+@click.command("import_mapping")
+@click.argument("name")
+@with_appcontext
+def import_mapping(name):
+    """
+        Import des données des tables de vocabulaires
+        dans la table geotrekagg_correspondances
+
+        Args:
+            name (string): nom de la source
+    """
+    from geotrek_agg.app import DB
+    from geotrek_agg.mapping_utils import insert_cor_data, auto_mapping
+    from geotrek_agg.utils import get_source
+    # Test if source exists
+    source = get_source(DB, name)
+    if not source:
+        current_app.logger.info(f"La source {name} n'existe pas.")
+        exit()
     for c in COR_TABLE:
-        print(f"Import table {c}")
-        insert_cor_data(DB, 'pne', c, COR_TABLE[c]['label_field'])
-        auto_mapping(DB, 'pne', c, COR_TABLE[c]['label_field'])
+        click.echo(f"Import table {c}")
+        if insert_cor_data(DB, 'pne', c, COR_TABLE[c]['label_field']):
+            auto_mapping(DB,  c, COR_TABLE[c]['label_field'])
+            click.echo(click.style('Done', fg='green'))
+        else:
+            click.echo(click.style('Table not found', fg='red'))
 
 
 @click.command("populate_gta")
@@ -27,55 +105,7 @@ def import_mapping():
 def populate_gta():
     from geotrek_agg.app import DB
     from .import_content.sql import queries
-    from geotrek_agg.env import IMPORT_MODEL
-    from geotrek_agg.mapping_object import MappingObject
     source = "pne"
-    # TODO TEST_BEFORE_IMPORT FIRST
-
-    # TODO clean source
-
-    # Import des données table par table
-    for table in IMPORT_MODEL:
-        print(f" -- Import table {table}")
-        table_object = MappingObject(
-            DB=DB,
-            data_source=source,
-            table_name=table,
-            table_def=IMPORT_MODEL[table]
-        )
-        try:
-            sql_d = table_object.generate_sql_delete()
-            print(sql_d)
-            sql_i = table_object.generate_sql_insert()
-            print(sql_i)
-        except Exception as e:
-            print('Erreur', e)
-            raise(e)
-            exit
-
-
-
-def insert_cor_data(DB, db_source, cor_table, fields):
-
-    sql = """
-        INSERT INTO public.geotrekagg_correspondances
-            (bdd_source, table_origin, id_origin, label_origin)
-        SELECT  '{db_source}', '{cor_table}', id, {label} FROM {db_source}.{cor_table}
-    """
-    try:
-        DB.engine.execute(sql.format(db_source=db_source, cor_table=cor_table, label=fields))
-    except Exception as e:
-        print(e)
-
-
-def auto_mapping(DB, db_source, cor_table, fields):
-
-    sql = """
-        UPDATE public.geotrekagg_correspondances c SET id_destination = i.id
-        FROM public.{cor_table} i
-        WHERE c.table_origin = '{cor_table}' AND i.{label} = c.label_origin;
-    """
-    try:
-        DB.engine.execute(sql.format(cor_table=cor_table, label=fields))
-    except Exception as e:
-        print(e)
+    for query in queries:
+        DB.engine.execute(query.format(source=source))
+        print('Insertion données effectuée')
