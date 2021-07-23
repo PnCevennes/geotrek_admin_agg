@@ -1,37 +1,7 @@
 
 from geotrek_agg.env import COR_TABLE
-from geotrek_agg.models import GeotrekAggCorrespondances
-
-
-def insert_cor_data(DB, db_source, cor_table, fields):
-    """
-        Insertion des données dans la table geotrekagg_correspondances
-    """
-    sql = """
-        INSERT INTO public.geotrekagg_correspondances
-            (bdd_source, table_origin, id_origin, label_origin)
-        SELECT  '{db_source}', '{cor_table}', id, {label} FROM {db_source}.{cor_table}
-    """
-    try:
-        DB.engine.execute(sql.format(db_source=db_source, cor_table=cor_table, label=fields))
-    except Exception as e:
-        print(e)
-
-
-def auto_mapping(DB, db_source, cor_table, fields):
-    """
-        mapping automatique des nomenclatures
-         dans la table geotrekagg_correspondances
-    """
-    sql = """
-        UPDATE public.geotrekagg_correspondances c SET id_destination = i.id
-        FROM public.{cor_table} i
-        WHERE c.table_origin = '{cor_table}' AND i.{label} = c.label_origin;
-    """
-    try:
-        DB.engine.execute(sql.format(cor_table=cor_table, label=fields))
-    except Exception as e:
-        print(e)
+from geotrek_agg.models import GeotrekAggCorrespondances, GeotrekAggSources
+from sqlalchemy.orm.exc import NoResultFound
 
 
 def get_all_cor_data(DB):
@@ -54,7 +24,7 @@ def get_all_cor_data(DB):
     query = ' UNION '.join(sql)
     try:
         data = DB.session.connection().execute(query)
-    except Exception as e:
+    except Exception:
         return []
     return data
 
@@ -109,3 +79,49 @@ def update_cor_data(DB, id, new_mapping_id=None):
         DB.session.commit()
     except Exception as e:
         raise(e)
+
+
+def get_source(DB, name):
+    """[summary]
+
+    Args:
+        DB ([connexion]):
+        name ([string]): nom de la source
+
+    Returns:
+        [GeotrekAggSources]: [description]
+    """
+    try:
+        source = DB.session.query(
+            GeotrekAggSources
+        ).filter_by(bdd_source=name).one()
+    except NoResultFound:
+        return None
+    return source
+
+
+def create_fdw_server(DB, name, db_name, host, port, user, password):
+    """
+        Création du server fdw
+
+    Args:
+        DB ([connexion])
+        name ([string]): nom de la source
+        host ([string]): hote de la base geotrek
+        port ([int]): port de postgresql de l'hote
+        user ([string]): utilisateur (ayant des droits de lecture sur la base)
+        password ([string]): mot de passe de l'utilisateur
+    """
+
+    sql = f"""
+        DROP SERVER IF EXISTS server_{name} CASCADE;
+        CREATE SERVER IF NOT EXISTS server_{name}
+                FOREIGN DATA WRAPPER postgres_fdw
+                OPTIONS (host '{host}', port '{port}', dbname '{db_name}');
+
+        CREATE USER MAPPING FOR dbadmin
+            SERVER server_{name}
+            OPTIONS (user '{user}', password '{password}');
+    """
+    print(sql)
+    DB.engine.execute(sql)
