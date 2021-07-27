@@ -17,6 +17,18 @@ UPDATE trekking_poi t SET uuid = uuid_generate_v4()
 FROM core_topology ct WHERE ct.id = t.topo_object_id AND t.uuid IS NULL;
 
 
+------CREATION CHAMPS UUIDs dans BDD agg (sans génération)
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+ALTER TABLE core_topology ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE common_attachment ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE tourism_informationdesk ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE tourism_touristiccontent ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE tourism_touristicevent ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE feedback_report ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid;
+
+
 
 ----MISE EN PLACE FDW dans BDD agg
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;

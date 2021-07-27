@@ -16,22 +16,24 @@ Le fichier `geotrek_agg/import_content/aggregator_preparation.sql` comprend tout
 
 ## Préparation base de données source
 
-Ses tables `core_topology`, `common_attachment`, `tourism_informationdesk`, `tourism_touristiccontent`, `tourism_touristicevent`, `feedback_report`, `trekking_trek`, `trekking_poi` ont un champ `uuid`.
+Ses tables `core_topology`, `common_attachment`, `tourism_informationdesk`, `tourism_touristiccontent`, `tourism_touristicevent`, `feedback_report`, `trekking_trek`, `trekking_poi` doivent avoir un champ `uuid` renseigné.
 
 ## Préparation base de données destination (aggregator)
 
 Un Foreign Data Wrapper de la (ou les) base de données source doit y être créé, afin d'importer les données de cette dernière dans un schéma.
 Les fonctions `geotrekagg_get_foreign_key()` et `geotrekagg_get_id_correspondance()` doivent être créées.
+Les mêmes tables que ci-dessus doivent avoir un champ `uuid`.
 
 # Usage
 
 ```
 export FLASK_APP=geotrek_agg/app
-flask *commande* # lance une des commandes définies dans geotrek_agg/commands.py
+flask *commande*    # lance une des commandes définies dans geotrek_agg/commands.py
 ```
 ```
-flask create_db_schema # crée les tables geotrekagg_source et geotrekagg_correspondances
-flask populate_gta # retourne les commandes sql d'insertion en base
+flask create_db_schema  # crée les tables geotrekagg_source et geotrekagg_correspondances
+flask import_mapping    # remplit la table geotrekagg_correspondances et propose un mapping automatique
+flask populate_gta  # retourne les commandes sql d'insertion en base
 ```
 
 
