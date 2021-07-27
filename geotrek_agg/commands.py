@@ -18,8 +18,8 @@ def create_db_schema():
 @click.option('-n', '--name', 'name', required=True, type=str)
 @click.option('-h', '--host', 'host', required=True, type=str)
 @click.option('-p', '--port', 'port', type=int, default=5432, show_default=True)
-@click.option('-u', '--user', 'user', required=True, type=str)
 @click.option('-d', '--db_name', 'db_name', required=True, type=str)
+@click.option('-u', '--user', 'user', required=True, type=str)
 @click.option('-p', '--password', 'password', required=True, type=str)
 @click.option('-o', '--overwrite', 'overwrite', is_flag=True)
 @with_appcontext
@@ -41,7 +41,7 @@ def add_source(name, host, port, db_name,  user, password, overwrite):
     # Test if source exists
     source = get_source(DB, name)
     if source and not overwrite:
-        current_app.logger.error(f"La source {name} existe déjà. Pour la redéfinir utiliser l'option -o (overwrite)")
+        current_app.logger.info(f"La source {name} existe déjà. Pour la redéfinir utiliser l'option -o")
         exit()
 
     # Création du FDW
@@ -71,6 +71,12 @@ def add_source(name, host, port, db_name,  user, password, overwrite):
             DB.session.rollback()
             current_app.logger.error("Impossible de créer bdd_source", str(e))
 
+    # Test if source exists
+    source = get_source(DB, name)
+    if source and not overwrite:
+        current_app.logger.error(f"La source {name} existe déjà. Pour la redéfinir utiliser l'option -o (overwrite)")
+        exit()
+
 
 @click.command("import_mapping")
 @click.argument("name")
@@ -91,14 +97,13 @@ def import_mapping(name):
     if not source:
         current_app.logger.info(f"La source {name} n'existe pas.")
         exit()
-    for ct in COR_TABLE:
-        click.echo(f"Import table {ct}")
-        if insert_cor_data(DB, name, ct, COR_TABLE[ct]['label_field']):
-            auto_mapping(DB, ct, COR_TABLE[ct]['label_field'])
+    for c in COR_TABLE:
+        click.echo(f"Import table {c}")
+        if insert_cor_data(DB, 'pne', c, COR_TABLE[c]['label_field']):
+            auto_mapping(DB,  c, COR_TABLE[c]['label_field'])
             click.echo(click.style('Done', fg='green'))
         else:
             click.echo(click.style('Table not found', fg='red'))
-
 
 @click.command("populate_gta")
 @with_appcontext
@@ -109,3 +114,5 @@ def populate_gta():
     for query in queries:
         DB.engine.execute(query.format(source=source))
         print('Insertion données effectuée')
+
+
