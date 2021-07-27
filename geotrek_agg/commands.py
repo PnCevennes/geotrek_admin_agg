@@ -110,9 +110,28 @@ def import_mapping(name):
 def populate_gta():
     from geotrek_agg.app import DB
     from .import_content.sql import queries
+    from geotrek_agg.env import IMPORT_MODEL
+    from geotrek_agg.mapping_object import MappingObject
     source = "pne"
-    for query in queries:
-        DB.engine.execute(query.format(source=source))
-        print('Insertion données effectuée')
+    # TODO TEST_BEFORE_IMPORT FIRST
 
+    # TODO clean source
 
+    # Import des données table par table
+    for table in IMPORT_MODEL:
+        print(f" -- Import table {table}")
+        table_object = MappingObject(
+            DB=DB,
+            data_source=source,
+            table_name=table,
+            table_def=IMPORT_MODEL[table]
+        )
+        try:
+            sql_d = table_object.generate_sql_delete()
+            print(sql_d)
+            sql_i = table_object.generate_sql_insert()
+            print(sql_i)
+        except Exception as e:
+            print('Erreur', e)
+            raise(e)
+            exit
