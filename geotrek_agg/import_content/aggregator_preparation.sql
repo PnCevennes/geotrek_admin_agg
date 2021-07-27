@@ -1,11 +1,23 @@
-----CREATION TABLE common_sourceportal POUR CONSERVER L'ORIGINE DES DONNEES
-CREATE TABLE common_sourceportal
-(id SERIAL PRIMARY KEY,
-"name" varchar);
+------CREATION UUIDs
 
-INSERT INTO common_sourceportal("name") VALUES
-('pnc'),('pne');
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+ALTER TABLE core_topology ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE common_attachment ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE tourism_informationdesk ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE tourism_touristiccontent ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE tourism_touristicevent ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE feedback_report ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 
+ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid;
+UPDATE trekking_trek t SET uuid = uuid_generate_v4()
+FROM core_topology ct WHERE ct.id = t.topo_object_id AND t.uuid IS NULL;
+
+ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid;
+UPDATE trekking_poi t SET uuid = uuid_generate_v4()
+FROM core_topology ct WHERE ct.id = t.topo_object_id AND t.uuid IS NULL;
+
+
+-------FONCTION D'OBTENTION DU NOUVEL ID D'UNE CATEGORIE
 CREATE OR REPLACE FUNCTION public.geotrekagg_get_id_correspondance(
 	_initial_id integer,
 	_table_origin character varying,
@@ -27,6 +39,8 @@ END;
 $function$
 ;
 
+
+--------FONCTION D'OBTENTION DE L'ID D
 CREATE OR REPLACE FUNCTION public.geotrekagg_get_foreign_key(
 	_filter_value varchar, -- Valeur pour filtrer et retrouver la données
 
@@ -63,85 +77,8 @@ BEGIN
 END;
 $function$
 ;
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-ALTER TABLE core_topology ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
-ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
-ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
-ALTER TABLE tourism_informationdesk ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
-ALTER TABLE feedback_report ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
-ALTER TABLE tourism_touristiccontent ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
-ALTER TABLE tourism_touristicevent ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
-ALTER TABLE common_attachment ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 
 
-----INSTALLER EXTENSION POUR GENERER UUID
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-
----- Création d'un uuid préalable à l'import, requêtes à lancer dans la/les BDD source
--- (étape rendue nécessaire par son absence pour l'instant dans les données sources)
--- à faire avant la création du FDW car définition de celui-ci ne change pas (colonnes créées ne sont pas ajoutées)
-WITH
-A (table_name) AS (
-	VALUES
-		('core_topology'),
-		('trekking_orderedtrekchild'),
-		('trekking_trekrelationship'),
-		('trekking_trek_accessibilities'),
-		('tourism_informationdesk'),
-		('trekking_trek_information_desks'),
-		('trekking_trek_networks'),
-		('trekking_trek_portal'),
-		('trekking_trek_source'),
-		('trekking_trek_themes'),
-		('trekking_weblink'),
-		('trekking_trek_web_links'),
-		('trekking_trek_labels'),
-		('trekking_trek_pois_excluded'),
-		('feedback_report'),
-		('tourism_touristiccontent'),
-		('tourism_touristiccontenttype'),
-		('tourism_touristiccontent_portal'),
-		('tourism_touristiccontent_source'),
-		('tourism_touristiccontent_themes'),
-		('tourism_touristiccontent_type1'),
-		('tourism_touristiccontent_type2'),
-		('tourism_touristicevent'),
-		('tourism_touristicevent_portal'),
-		('tourism_touristicevent_source'),
-		('tourism_touristicevent_themes'),
-		('common_filetype'),
-		('common_attachment'),
-		('core_path'),
-		('core_pathaggregation')
-	)
-SELECT
-	'ALTER TABLE ' || table_name ||
-	'
-ADD COLUMN IF NOT EXISTS uuid uuid;' AS add_uuid_column,
-	'UPDATE ' || table_name ||
-    '
-SET uuid = uuid_generate_v4()
-WHERE uuid IS NULL;' AS generate_uuid
-FROM a;
-
-----Même chose pour trekking_trek et poi, dont l'uuid est censé être le même que celui des core_topology
--- (reprise de la clef étrangère trekking_trek.topo_object_id = core_topology.id)
-WITH
-A (table_name) AS (
-	VALUES
-		('trekking_trek'), ('trekking_poi')
-	)
-SELECT
-	'ALTER TABLE ' || table_name ||
-	'
-ADD COLUMN IF NOT EXISTS uuid uuid;' AS add_uuid_column,
-	'UPDATE ' || table_name ||
-    ' t
-SET uuid = uuid_generate_v4()
-FROM core_topology ct
-WHERE ct.id = t.topo_object_id
-AND t.uuid IS NULL;' AS generate_uuid
-FROM a;
 
 
 
@@ -156,7 +93,7 @@ CREATE SERVER IF NOT EXISTS server_pnc
 
 CREATE USER MAPPING FOR dbadmin
     SERVER server_pnc
-    OPTIONS (user 'dbadmin', password '24121994');
+    OPTIONS (user user, password password);
 
 --DROP SCHEMA IF EXISTS pnc;
 CREATE SCHEMA pnc;
@@ -171,7 +108,7 @@ CREATE SERVER IF NOT EXISTS server_pne
 
 CREATE USER MAPPING FOR dbadmin
     SERVER server_pne
-    OPTIONS (user 'dbadmin', password '24121994');
+    OPTIONS (user user, password password);
 
 --DROP SCHEMA IF EXISTS pne;
 CREATE SCHEMA pne;
