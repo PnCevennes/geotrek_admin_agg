@@ -12,11 +12,16 @@ pip install flask-sqlalchemy
 pip install psycopg2
 ```
 
-## Base de données source
-Ses tables `core_topology`, `common_attachment`, `tourism_informationdesk`, `tourism_touristiccontent`, `tourism_touristicevent`, `feedback_report`, `trekking_trek`, `trekking_poi` ont un champ `uuid`. La requête SQL de création de ces champs et de génération des uuids est disponible dans `geotrek_agg/import_content/aggregator_preparation.sql`.
+Le fichier `geotrek_agg/import_content/aggregator_preparation.sql` comprend toutes les requêtes nécessaires aux étapes de préparation des bases de données présentées ci-dessous :
 
-## Base de données destination (aggregator)
-Un Foreign Data Wrapper de la (ou les) base de données source doit y être créé, afin d'importer les données de cette dernière dans un schéma. Les requêtes sont disponibles dans `geotrek_agg/import_content/aggregator_preparation.sql`.
+## Préparation base de données source
+
+Ses tables `core_topology`, `common_attachment`, `tourism_informationdesk`, `tourism_touristiccontent`, `tourism_touristicevent`, `feedback_report`, `trekking_trek`, `trekking_poi` ont un champ `uuid`.
+
+## Préparation base de données destination (aggregator)
+
+Un Foreign Data Wrapper de la (ou les) base de données source doit y être créé, afin d'importer les données de cette dernière dans un schéma.
+Les fonctions `geotrekagg_get_foreign_key()` et `geotrekagg_get_id_correspondance()` doivent être créées.
 
 # Usage
 
