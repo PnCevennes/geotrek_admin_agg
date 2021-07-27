@@ -41,7 +41,7 @@ def add_source(name, host, port, db_name,  user, password, overwrite):
     # Test if source exists
     source = get_source(DB, name)
     if source and not overwrite:
-        click.echo(f"La source {name} existe déjà. Pour la redéfinir utiliser l'option -o")
+        current_app.logger.error(f"La source {name} existe déjà. Pour la redéfinir utiliser l'option -o (overwrite)")
         exit()
 
     # Création du FDW
@@ -91,10 +91,10 @@ def import_mapping(name):
     if not source:
         current_app.logger.info(f"La source {name} n'existe pas.")
         exit()
-    for c in COR_TABLE:
-        click.echo(f"Import table {c}")
-        if insert_cor_data(DB, 'pne', c, COR_TABLE[c]['label_field']):
-            auto_mapping(DB,  c, COR_TABLE[c]['label_field'])
+    for ct in COR_TABLE:
+        click.echo(f"Import table {ct}")
+        if insert_cor_data(DB, name, ct, COR_TABLE[ct]['label_field']):
+            auto_mapping(DB, ct, COR_TABLE[ct]['label_field'])
             click.echo(click.style('Done', fg='green'))
         else:
             click.echo(click.style('Table not found', fg='red'))
