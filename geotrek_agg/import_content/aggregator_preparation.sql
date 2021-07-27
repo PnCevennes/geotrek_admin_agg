@@ -1,4 +1,4 @@
-------CREATION UUIDs
+------CREATION UUIDs dans BDD source
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ALTER TABLE core_topology ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
@@ -16,6 +16,25 @@ ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid;
 UPDATE trekking_poi t SET uuid = uuid_generate_v4()
 FROM core_topology ct WHERE ct.id = t.topo_object_id AND t.uuid IS NULL;
 
+
+
+----MISE EN PLACE FDW dans BDD agg
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+
+--DROP SERVER IF EXISTS server_pnc CASCADE;
+CREATE SERVER IF NOT EXISTS server_pnc
+        FOREIGN DATA WRAPPER postgres_fdw
+        OPTIONS (host 'localhost', port '5432', dbname 'geotrek_pnc');
+
+CREATE USER MAPPING FOR dbadmin
+    SERVER server_pnc
+    OPTIONS (user user, password password);
+
+--DROP SCHEMA IF EXISTS pnc;
+CREATE SCHEMA pnc;
+IMPORT FOREIGN SCHEMA public
+    FROM SERVER server_pnc
+    INTO pnc;
 
 -------FONCTION D'OBTENTION DU NOUVEL ID D'UNE CATEGORIE
 CREATE OR REPLACE FUNCTION public.geotrekagg_get_id_correspondance(
@@ -79,42 +98,6 @@ $function$
 ;
 
 
-
-
-
-----MISE EN PLACE FDW
-
-CREATE EXTENSION IF NOT EXISTS postgres_fdw;
-
---DROP SERVER IF EXISTS server_pnc CASCADE;
-CREATE SERVER IF NOT EXISTS server_pnc
-        FOREIGN DATA WRAPPER postgres_fdw
-        OPTIONS (host 'localhost', port '5432', dbname 'geotrek_pnc');
-
-CREATE USER MAPPING FOR dbadmin
-    SERVER server_pnc
-    OPTIONS (user user, password password);
-
---DROP SCHEMA IF EXISTS pnc;
-CREATE SCHEMA pnc;
-IMPORT FOREIGN SCHEMA public
-    FROM SERVER server_pnc
-    INTO pnc;
-
---DROP SERVER IF EXISTS server_pne CASCADE;
-CREATE SERVER IF NOT EXISTS server_pne
-        FOREIGN DATA WRAPPER postgres_fdw
-        OPTIONS (host 'localhost', port '5432', dbname 'geotrek_pne');
-
-CREATE USER MAPPING FOR dbadmin
-    SERVER server_pne
-    OPTIONS (user user, password password);
-
---DROP SCHEMA IF EXISTS pne;
-CREATE SCHEMA pne;
-IMPORT FOREIGN SCHEMA public
-    FROM SERVER server_pne
-    INTO pne;
 
 
 ----COMPARAISON SCHEMAS, permet d'identifier quelles sont les colonnes qui diffèrent dans les deux schémas
