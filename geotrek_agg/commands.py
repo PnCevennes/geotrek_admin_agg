@@ -18,8 +18,8 @@ def create_db_schema():
 @click.option('-n', '--name', 'name', required=True, type=str)
 @click.option('-h', '--host', 'host', required=True, type=str)
 @click.option('-p', '--port', 'port', type=int, default=5432, show_default=True)
-@click.option('-d', '--db_name', 'db_name', required=True, type=str)
 @click.option('-u', '--user', 'user', required=True, type=str)
+@click.option('-d', '--db_name', 'db_name', required=True, type=str)
 @click.option('-p', '--password', 'password', required=True, type=str)
 @click.option('-o', '--overwrite', 'overwrite', is_flag=True)
 @with_appcontext
