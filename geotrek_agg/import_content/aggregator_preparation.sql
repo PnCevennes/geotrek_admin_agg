@@ -7,15 +7,8 @@ ALTER TABLE tourism_informationdesk ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT u
 ALTER TABLE tourism_touristiccontent ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 ALTER TABLE tourism_touristicevent ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 ALTER TABLE feedback_report ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
-
-ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid;
-UPDATE trekking_trek t SET uuid = uuid_generate_v4()
-FROM core_topology ct WHERE ct.id = t.topo_object_id AND t.uuid IS NULL;
-
-ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid;
-UPDATE trekking_poi t SET uuid = uuid_generate_v4()
-FROM core_topology ct WHERE ct.id = t.topo_object_id AND t.uuid IS NULL;
-
+ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 
 ------CREATION CHAMPS UUIDs dans BDD agg (sans génération)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
