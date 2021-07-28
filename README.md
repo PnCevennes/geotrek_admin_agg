@@ -7,9 +7,8 @@ Pour le fonctionnement d'une agrégation, des étapes nécessaires sont décrite
 # Prérequis
 
 ```
-pip install flask
-pip install flask-sqlalchemy
-pip install psycopg2
+pip install flask flask-sqlalchemy psycopg2
+cd web/static && npm ci
 ```
 
 Le fichier `geotrek_agg/import_content/aggregator_preparation.sql` comprend toutes les requêtes nécessaires aux étapes de préparation des bases de données présentées ci-dessous :
