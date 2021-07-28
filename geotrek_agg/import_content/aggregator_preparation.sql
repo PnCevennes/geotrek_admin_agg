@@ -26,20 +26,20 @@ ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid;
 ----MISE EN PLACE FDW dans BDD agg
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 
---DROP SERVER IF EXISTS server_pnc CASCADE;
-CREATE SERVER IF NOT EXISTS server_pnc
+--DROP SERVER IF EXISTS server_pne CASCADE;
+CREATE SERVER IF NOT EXISTS server_pne
         FOREIGN DATA WRAPPER postgres_fdw
-        OPTIONS (host 'localhost', port '5432', dbname 'geotrek_pnc');
+        OPTIONS (host 'localhost', port '5432', dbname 'geotrek_pne');
 
 CREATE USER MAPPING FOR dbadmin
-    SERVER server_pnc
-    OPTIONS (user user, password password);
+    SERVER server_pne
+    OPTIONS (user 'user', password 'password');
 
---DROP SCHEMA IF EXISTS pnc;
-CREATE SCHEMA pnc;
+--DROP SCHEMA IF EXISTS pne;
+CREATE SCHEMA pne;
 IMPORT FOREIGN SCHEMA public
-    FROM SERVER server_pnc
-    INTO pnc;
+    FROM SERVER server_pne
+    INTO pne;
 
 -------FONCTION D'OBTENTION DU NOUVEL ID D'UNE CATEGORIE
 CREATE OR REPLACE FUNCTION public.geotrekagg_get_id_correspondance(

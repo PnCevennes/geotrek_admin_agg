@@ -20,7 +20,6 @@ Ses tables `core_topology`, `common_attachment`, `tourism_informationdesk`, `tou
 
 ## Préparation base de données destination (aggregator)
 
-Un Foreign Data Wrapper de la (ou les) base de données source doit y être créé, afin d'importer les données de cette dernière dans un schéma.
 Les fonctions `geotrekagg_get_foreign_key()` et `geotrekagg_get_id_correspondance()` doivent être créées.
 Les mêmes tables que ci-dessus doivent avoir un champ `uuid`.
 
@@ -32,6 +31,7 @@ flask *commande*    # lance une des commandes définies dans geotrek_agg/command
 ```
 ```
 flask create_db_schema  # crée les tables geotrekagg_source et geotrekagg_correspondances
+flask add_source    # crée un foreign data wrapper et un schéma, complète la table geotrekagg_source
 flask import_mapping    # remplit la table geotrekagg_correspondances et propose un mapping automatique
 flask populate_gta  # retourne les commandes sql d'insertion en base
 ```
