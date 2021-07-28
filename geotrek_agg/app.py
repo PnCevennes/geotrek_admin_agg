@@ -23,12 +23,14 @@ with app.app_context():
         create_db_schema,
         import_mapping,
         populate_gta,
-        add_source
+        add_source,
+        create_functions
     )
     app.cli.add_command(create_db_schema)
     app.cli.add_command(import_mapping)
     app.cli.add_command(populate_gta)
     app.cli.add_command(add_source)
+    app.cli.add_command(create_functions)
 
     from geotrek_agg.mapping_app import mapping_app
     app.register_blueprint(mapping_app)

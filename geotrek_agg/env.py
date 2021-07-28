@@ -81,6 +81,7 @@ IMPORT_MODEL = {
             "reservation_system_id": "common_reservationsystem"
         },
         "filters": {
+            "not_null": ["structure_id"]
         },
         "foreign_keys": {
             "topo_object_id": {
@@ -90,48 +91,56 @@ IMPORT_MODEL = {
         },
         "cor_tables": {
            "trekking_trek_accessibilities": {
+                "excluded": "id",
                "key": "trek_id",
                 "correspondances_keys": {
                     "accessibility_id": "trekking_accessibility",
                 },
            },
            "trekking_trek_information_desks" : {
+                "excluded": "id",
                "key": "trek_id",
                 "correspondances_keys": {
                     "informationdesk_id": "tourism_informationdesk",
                 },
            },
            "trekking_trek_networks" : {
+                "excluded": "id",
                "key": "trek_id",
                 "correspondances_keys": {
                     "treknetwork_id": "trekking_treknetwork",
                 },
            },
            "trekking_trek_portal" : {
+                "excluded": "id",
                "key": "trek_id",
                 "correspondances_keys": {
                     "targetportal_id": "common_targetportal",
                 },
            },
            "trekking_trek_source" : {
+                "excluded": "id",
                "key": "trek_id",
                 "correspondances_keys": {
                     "recordsource_id": "common_recordsource",
                 },
            },
            "trekking_trek_themes" : {
+                "excluded": "id",
                "key": "trek_id",
                 "correspondances_keys": {
                     "theme_id": "common_theme",
                 },
            },
            "trekking_trek_web_links" : {
+                "excluded": "id",
                "key": "weblink_id",
                 "correspondances_keys": {
                     "weblink_id": "common_sourceportal",
                 },
            },
            "trekking_trek_labels" : {
+                "excluded": "id",
                "key": "trek_id",
                 "correspondances_keys": {
                     "label_id": "common_label",

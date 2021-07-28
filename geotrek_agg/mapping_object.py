@@ -44,8 +44,10 @@ class MappingObject(object):
             cor_table_data["key"]: parent_table
         }
         cor_table_data["filters"] = {
-            "not_null": [k for k in cor_table_data["correspondances_keys"]]
+           "not_null": [k for k in cor_table_data["correspondances_keys"]]
         }
+        cor_table_data["filters"]["not_null"].append(cor_table_data["key"])
+        
         return MappingObject(
             DB=self._DB,
             data_source=self._data_source,
