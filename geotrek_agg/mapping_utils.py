@@ -18,6 +18,7 @@ def insert_cor_data(DB, db_source, cor_table, fields):
         DB.engine.execute(
             sql.format(db_source=db_source, cor_table=cor_table, label=fields)
         )
+        return True
     except ProgrammingError as e:
         if e.code == 'f405':
             return False

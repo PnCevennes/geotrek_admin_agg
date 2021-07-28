@@ -152,6 +152,12 @@ def create_fdw_server(DB, name, db_name, host, port, user, password):
         CREATE USER MAPPING FOR dbadmin
             SERVER server_{name}
             OPTIONS (user '{user}', password '{password}');
+
+        DROP SCHEMA IF EXISTS {name};
+        CREATE SCHEMA {name};
+        IMPORT FOREIGN SCHEMA public
+            FROM SERVER server_{name}
+            INTO {name};       
     """
     print(sql)
     DB.engine.execute(sql)
