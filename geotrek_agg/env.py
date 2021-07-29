@@ -57,6 +57,7 @@ IMPORT_MODEL = {
         },
     },
     "trekking_poi": {
+        "primary_key" : "topo_object_id",
         "correspondances_keys": {
             "structure_id": "authent_structure",
             "type_id": "trekking_poitype"
@@ -69,6 +70,9 @@ IMPORT_MODEL = {
                 "table": "core_topology",
                 "col": "id"
             }
+        },
+        "to_del_before": {
+            "trekking_trek_pois_excluded": "poi_id"
         }
     },
     "trekking_trek": {
@@ -88,6 +92,11 @@ IMPORT_MODEL = {
                 "table": "core_topology",
                 "col": "id"
             }
+        },
+        "to_del_before": {
+            "trekking_trek_pois_excluded": "topo_object_id",
+            "trekking_orderedtrekchild":  "topo_object_id",
+            "trekking_trekrelationship": "topo_object_id"
         },
         "cor_tables": {
            "trekking_trek_accessibilities": {
@@ -148,8 +157,12 @@ IMPORT_MODEL = {
            },
         }
     },
-    "trekking_orderedtrekchild": {
+   "trekking_orderedtrekchild": {
         "excluded": "id",
+        "no_delete": "true",
+        "filters": {
+            "not_null": ["child_id", "parent_id"]
+        },
         "foreign_keys": {
             "child_id": {
                 "table": "trekking_trek",
@@ -158,14 +171,15 @@ IMPORT_MODEL = {
             "parent_id": {
                 "table": "trekking_trek",
                 "col": "topo_object_id"
-            }
-        },
-        "filters": {
-            "not_null": ["child_id", "parent_id"]
-        },
-    },
-    "trekking_trekrelationship": {
+            },
+        }
+   },
+   "trekking_trekrelationship": {
         "excluded": "id",
+        "no_delete": "true",
+        "filters": {
+            "not_null": ["trek_a_id", "trek_b_id"]
+        },
         "foreign_keys": {
             "trek_a_id": {
                 "table": "trekking_trek",
@@ -174,14 +188,15 @@ IMPORT_MODEL = {
             "trek_b_id": {
                 "table": "trekking_trek",
                 "col": "topo_object_id"
-            }
-        },
-        "filters": {
-            "not_null": ["trek_a_id", "trek_b_id"]
-        },
-    },
-    "trekking_trek_pois_excluded": {
+            },
+        }
+   },
+   "trekking_trek_pois_excluded": {
         "excluded": "id",
+        "no_delete": "true",
+        "filters": {
+            "not_null": ["trek_id", "poi_id"]
+        },
         "foreign_keys": {
             "trek_id": {
                 "table": "trekking_trek",
@@ -190,12 +205,9 @@ IMPORT_MODEL = {
             "poi_id": {
                 "table": "trekking_poi",
                 "col": "topo_object_id"
-            }
-        },
-        "filters": {
-            "not_null": ["trek_id", "poi_id"]
-        },
-    },
+            },
+        }
+   },
     "tourism_touristiccontent": {
         "excluded": "id",
         "correspondances_keys": {

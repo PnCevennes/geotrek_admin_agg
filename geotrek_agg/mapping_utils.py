@@ -13,7 +13,9 @@ def insert_cor_data(DB, db_source, cor_table, fields):
         INSERT INTO public.geotrekagg_correspondances
             (bdd_source, table_origin, id_origin, label_origin)
         SELECT  '{db_source}', '{cor_table}', id, {label} FROM {db_source}.{cor_table}
+        ON CONFLICT ON CONSTRAINT geotrekagg_correspondances_bdd_source_table_origin_id_origi_key DO NOTHING
     """
+
     try:
         DB.engine.execute(
             sql.format(db_source=db_source, cor_table=cor_table, label=fields)

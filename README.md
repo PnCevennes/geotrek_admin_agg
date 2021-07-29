@@ -21,6 +21,7 @@ Ses tables `core_topology`, `common_attachment`, `tourism_informationdesk`, `tou
 
 Les fonctions `geotrekagg_get_foreign_key()` et `geotrekagg_get_id_correspondance()` doivent être créées.
 Les mêmes tables que ci-dessus doivent avoir un champ `uuid`.
+Les tables catégorielles `XXX` `SSS` et `TTT` doivent être renseignées avec l'ensemble des catégories voulues (combinaison manuelle des catégories de toutes les bases de données sources).
 
 # Usage
 

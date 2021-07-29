@@ -14,6 +14,7 @@ class MappingObject(object):
         self.build_object()
 
     def build_object(self):
+        
         # build cor table
         cor_tables = self._table_def.get("cor_tables",  [])
         if not cor_tables:
@@ -21,6 +22,7 @@ class MappingObject(object):
 
         for cor_table in cor_tables:
             self._cor_list.append(self.build_cor_object(cor_table))
+
 
     def build_cor_object(self, cor_table):
         """
@@ -33,11 +35,8 @@ class MappingObject(object):
         Returns:
             MappingObject: table de corrélation
         """
-        parent_table = {
-            "table": self._table_name,
-            "col": self._table_def["primary_key"]
-        }
-
+        
+        parent_table = self._get_parent_table()
         cor_table_data = self._table_def["cor_tables"][cor_table]
         cor_table_data["parent_table"] = parent_table
         cor_table_data["foreign_keys"] = {
@@ -143,9 +142,23 @@ class MappingObject(object):
         if self._is_cor:
             # Génération du code sql de deletion des tables de
             #   correlations
-            return self._generate_cor_sql_delete()
+            return self._generate_cor_sql_delete(
+                table_name=self._table_name,
+                key=self._table_def["key"],
+                parent_table=self._table_def["parent_table"]
+                )
+        elif "no_delete" in self._table_def:
+            return ""
         else:
             sql = []
+            for del_bef in self._table_def.get("to_del_before",  []):
+                sql.append(
+                    self._generate_cor_sql_delete(
+                        table_name=del_bef,
+                        key=self._table_def["to_del_before"][del_bef],
+                        parent_table=self._get_parent_table()
+                    )
+                )
             for cor in self._cor_list:
                 sql.append(cor.generate_sql_delete())
             sql.append(self._generate_simple_sql_delete())
@@ -153,12 +166,12 @@ class MappingObject(object):
 
             return sql
 
-    def _generate_cor_sql_delete(self):
+    def _generate_cor_sql_delete(self, table_name, key, parent_table):
         """
             Génération du code sql de deletion des tables de
             correlations
         """
-        parent_table = self._table_def["parent_table"]
+        # parent_table = self._table_def["parent_table"]
 
         sql = """
             WITH to_del AS (
@@ -174,8 +187,8 @@ class MappingObject(object):
             parent_col_id=parent_table["col"],
             parent_table_name=parent_table["table"],
             source=self._data_source,
-            table_name=self._table_name,
-            col_id=self._table_def["key"]
+            table_name=table_name,
+            col_id=key
         )
         return sql
 
@@ -191,3 +204,9 @@ class MappingObject(object):
             WHERE p.uuid = t.uuid;
         """
         return sql
+
+    def _get_parent_table(self):
+        return {
+            "table": self._table_name,
+            "col": self._table_def["primary_key"]
+        }
