@@ -149,8 +149,8 @@ IMPORT_MODEL = {
         },
         "to_del_before": {
             "trekking_trek_pois_excluded": "trek_id",
-            "trekking_orderedtrekchild": "trek_a_id",
-            "trekking_trekrelationship": "child_id"
+            "trekking_orderedtrekchild": "child_id",
+            "trekking_trekrelationship": "trek_a_id"
         },
         "cor_tables": {
             "trekking_trek_accessibilities": {
