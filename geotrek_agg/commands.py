@@ -23,7 +23,7 @@ def create_db_schema():
 @click.option('-p', '--password', 'password', required=True, type=str)
 @click.option('-o', '--overwrite', 'overwrite', is_flag=True)
 @with_appcontext
-def add_source(name, host, port, db_name,  user, password, overwrite):
+def add_source(name, host, port, db_name, user, password, overwrite):
     """
         Création d'une source pour l'aggrégateur
 
@@ -57,7 +57,7 @@ def add_source(name, host, port, db_name,  user, password, overwrite):
             user=user,
             password=password
         )
-        click.echo(f"Création du foreign data wrapper")
+        click.echo(click.style(f"Foreign data wrapper créé", fg='green'))
     except Exception as e:
         current_app.logger.error("Impossible de créer le fdw", e.orig)
         exit()
@@ -143,6 +143,7 @@ def populate_gta():
 @with_appcontext
 def create_functions():
     from geotrek_agg.app import DB
+    from sqlalchemy import text
     click.echo("Création des fonctions...")
     sql = f"""
         -------FONCTION D'OBTENTION DU NOUVEL ID D'UNE CATEGORIE
@@ -166,7 +167,7 @@ def create_functions():
         END;
         $function$;
 
-        --------FONCTION D'OBTENTION DE L'ID DE ??
+        --------FONCTION D'OBTENTION DE L'ID DE LA CLEF ETRANGERE
         CREATE OR REPLACE FUNCTION public.geotrekagg_get_foreign_key(
             _filter_value varchar, -- Valeur pour filtrer et retrouver la données
 
@@ -196,11 +197,12 @@ def create_functions():
             WHERE p."' ||_col_origin || '"::varchar = ''' || _filter_value || '''
             ';
 
-            --RAISE NOTICE '%', _txt_sql;
+            --RAISE NOTICE '%%', _txt_sql;
             EXECUTE _txt_sql into _new_id;
 
             RETURN _new_id;
         END;
         $function$;
     """
-    DB.engine.execute(sql)
+    DB.engine.execute(text(sql).execution_options(autocommit=True))
+    click.echo("Fait")

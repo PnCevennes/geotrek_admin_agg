@@ -1,4 +1,4 @@
-
+import click
 from geotrek_agg.env import COR_TABLE
 from geotrek_agg.models import GeotrekAggCorrespondances, GeotrekAggSources
 from sqlalchemy.orm.exc import NoResultFound
@@ -143,21 +143,27 @@ def create_fdw_server(DB, name, db_name, host, port, user, password):
         password ([string]): mot de passe de l'utilisateur
     """
 
-    sql = f"""
+    sql1 = f"""
         DROP SERVER IF EXISTS server_{name} CASCADE;
         CREATE SERVER IF NOT EXISTS server_{name}
                 FOREIGN DATA WRAPPER postgres_fdw
                 OPTIONS (host '{host}', port '{port}', dbname '{db_name}');
-
+    """
+    sql2 = f"""
         CREATE USER MAPPING FOR dbadmin
             SERVER server_{name}
             OPTIONS (user '{user}', password '{password}');
-
+    """
+    sql3= f"""
         DROP SCHEMA IF EXISTS {name};
         CREATE SCHEMA {name};
         IMPORT FOREIGN SCHEMA public
             FROM SERVER server_{name}
             INTO {name};       
     """
-    print(sql)
-    DB.engine.execute(sql)
+    DB.engine.execute(sql1)
+    click.echo(f"Serveur créé")
+    DB.engine.execute(sql2)
+    click.echo(f"User mapping effectué")
+    DB.engine.execute(sql3)
+    click.echo(f"Schéma importé")

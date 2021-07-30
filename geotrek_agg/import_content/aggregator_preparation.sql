@@ -9,6 +9,7 @@ ALTER TABLE tourism_touristicevent ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uu
 ALTER TABLE feedback_report ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE trekking_weblink ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 
 ------CREATION CHAMPS UUIDs dans BDD agg (sans génération)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -20,6 +21,7 @@ ALTER TABLE tourism_touristicevent ADD COLUMN IF NOT EXISTS uuid uuid;
 ALTER TABLE feedback_report ADD COLUMN IF NOT EXISTS uuid uuid;
 ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid;
 ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE trekking_weblink ADD COLUMN IF NOT EXISTS uuid uuid;
 
 
 
