@@ -16,7 +16,7 @@ class GeotrekAggCorrespondances(DB.Model):
     id_origin = DB.Column(DB.Integer)
     label_origin = DB.Column(DB.Unicode)
     id_destination = DB.Column(DB.Integer)
-    UniqueConstraint(bdd_source, table_origin, id_origin)
+    UniqueConstraint(bdd_source, table_origin, id_origin, label_origin)
 
 class GeotrekAggSources(DB.Model):
     __tablename__ = "geotrekagg_sources"
