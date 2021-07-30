@@ -3,6 +3,7 @@
 """
 from flask import current_app
 from sqlalchemy.exc import SQLAlchemyError, ProgrammingError
+from sqlalchemy import text
 
 def insert_cor_data(DB, db_source, cor_table, fields):
     """
@@ -10,15 +11,32 @@ def insert_cor_data(DB, db_source, cor_table, fields):
     """
 
     sql = """
+        WITH
+            a AS (
+            SELECT * FROM public.geotrekagg_correspondances gc
+            WHERE NOT EXISTS (
+                SELECT * FROM {db_source}.{cor_table} p
+                WHERE gc.label_origin = p.{label}
+                AND gc.id_origin = p.id
+                )
+            AND bdd_source = '{db_source}'
+            AND table_origin = '{cor_table}'
+            )
+        DELETE FROM public.geotrekagg_correspondances gc
+        USING a
+        WHERE gc.bdd_source = a.bdd_source
+        AND gc.table_origin = a.table_origin
+        AND gc.label_origin = a.label_origin
+        AND gc.id_origin = a.id_origin;
+
         INSERT INTO public.geotrekagg_correspondances
             (bdd_source, table_origin, id_origin, label_origin)
         SELECT  '{db_source}', '{cor_table}', id, {label} FROM {db_source}.{cor_table}
-        ON CONFLICT ON CONSTRAINT geotrekagg_correspondances_bdd_source_table_origin_id_origi_key DO NOTHING
+        ON CONFLICT ON CONSTRAINT geotrekagg_correspondances_bdd_source_table_origin_id_origi_key DO NOTHING;
     """
-
     try:
         DB.engine.execute(
-            sql.format(db_source=db_source, cor_table=cor_table, label=fields)
+            text(sql.format(db_source=db_source, cor_table=cor_table, label=fields)).execution_options(autocommit=True)
         )
         return True
     except ProgrammingError as e:
