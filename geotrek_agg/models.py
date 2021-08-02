@@ -26,4 +26,5 @@ class GeotrekAggSources(DB.Model):
         primary_key=True
     )
     bdd_source = DB.Column(DB.Unicode, unique=True)
+    url = DB.Column(DB.Unicode)
 

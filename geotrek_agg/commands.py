@@ -19,11 +19,12 @@ def create_db_schema():
 @click.option('-h', '--host', 'host', required=True, type=str)
 @click.option('-p', '--port', 'port', type=int, default=5432, show_default=True)
 @click.option('-d', '--db_name', 'db_name', required=True, type=str)
-@click.option('-u', '--user', 'user', required=True, type=str)
+@click.option('-U', '--user', 'user', required=True, type=str)
 @click.option('-p', '--password', 'password', required=True, type=str)
+@click.option('-u', '--url', 'url', required=True, type=str)
 @click.option('-o', '--overwrite', 'overwrite', is_flag=True)
 @with_appcontext
-def add_source(name, host, port, db_name, user, password, overwrite):
+def add_source(name, host, port, db_name, user, password, overwrite, url):
     """
         Création d'une source pour l'aggrégateur
 
@@ -34,6 +35,7 @@ def add_source(name, host, port, db_name, user, password, overwrite):
             db_name([string]): nom de la base de données
             user ([string]): utilisateur (ayant des droits de lecture sur la base)
             password ([string]): mot de passe de l'utilisateur
+            url ([string]): url de la source (Geotrek-admin)
             overwrite ([]): écraser la source si déjà existante
     """
     from geotrek_agg.app import DB
@@ -64,7 +66,7 @@ def add_source(name, host, port, db_name, user, password, overwrite):
 
     # Création d'une entrée dans la table des sources
     if not source:
-        source = GeotrekAggSources(bdd_source=name)
+        source = GeotrekAggSources(bdd_source=name, url=url)
         DB.session.add(source)
         try:
             DB.session.commit()
@@ -169,7 +171,7 @@ def create_functions():
 
         --------FONCTION D'OBTENTION DE L'ID DE LA CLEF ETRANGERE
         CREATE OR REPLACE FUNCTION public.geotrekagg_get_foreign_key(
-            _filter_value varchar, -- Valeur pour filtrer et retrouver la données
+            _filter_value varchar, -- Valeur pour filtrer et retrouver la donnée
 
             _table_origin character varying,  -- TABLE SOURCE de la donnée
             _table_reference character varying, -- TABLE de jointure

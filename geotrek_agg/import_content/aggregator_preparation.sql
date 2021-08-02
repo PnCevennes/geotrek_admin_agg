@@ -10,6 +10,9 @@ ALTER TABLE feedback_report ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_gene
 ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 ALTER TABLE trekking_weblink ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE signage_signage ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE signage_blade ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
+ALTER TABLE signage_line ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 
 ------CREATION CHAMPS UUIDs dans BDD agg (sans génération)
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -22,6 +25,9 @@ ALTER TABLE feedback_report ADD COLUMN IF NOT EXISTS uuid uuid;
 ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid;
 ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid;
 ALTER TABLE trekking_weblink ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE signage_signage ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE signage_blade ADD COLUMN IF NOT EXISTS uuid uuid;
+ALTER TABLE signage_line ADD COLUMN IF NOT EXISTS uuid uuid;
 
 
 
@@ -68,7 +74,7 @@ $function$
 
 --------FONCTION D'OBTENTION DE L'ID D
 CREATE OR REPLACE FUNCTION public.geotrekagg_get_foreign_key(
-	_filter_value varchar, -- Valeur pour filtrer et retrouver la données
+	_filter_value varchar, -- Valeur pour filtrer et retrouver la donnée
 
 	_table_origin character varying,  -- TABLE SOURCE de la donnée
 	_table_reference character varying, -- TABLE de jointure

@@ -95,6 +95,20 @@ class MappingObject(object):
                         db_source=self._data_source
                     )
                 )
+            elif col == "attachment_file":
+                select_col.append(
+                    """
+                        '' as {col}
+                    """.format(col=col))
+            elif col == "attachment_link":
+                select_col.append(
+                    """
+                        (SELECT url FROM geotrekagg_sources WHERE bdd_source = '{db_source}') || 'media/' || attachment_file as {col}
+                    """.format(
+                        db_source=self._data_source,
+                        col=col
+                    )
+                )
             else:
                 # retourne uniquement le nom de la colonne
                 select_col.append('"{}"'.format(col))

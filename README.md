@@ -25,6 +25,9 @@ Les tables
 - `trekking_trek`
 - `trekking_poi`
 - `trekking_weblink`
+- `signage_signage`
+- `signage_blade`
+- `signage_line`
 doivent avoir un champ `uuid` renseigné.
 
 ## Préparation base de données destination (aggregator)

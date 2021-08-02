@@ -8,6 +8,7 @@ COR_TABLE = {
     'common_targetportal': {"label_field": "name"},
     'common_theme': {"label_field": "label"},
     'common_recordsource': {"label_field": "name"},
+    'common_organism': {"label_field": "organism"},
     'common_filetype':  {"label_field": "type"},
     'feedback_reportstatus': {"label_field": "label"},
     'feedback_reportactivity': {"label_field": "label"},
@@ -24,6 +25,12 @@ COR_TABLE = {
     'tourism_informationdesktype': {"label_field": "label"},
     'tourism_touristiccontentcategory': {"label_field": "label"},
     'tourism_touristiccontenttype': {"label_field": "label"},
+    'signage_sealing': {"label_field": "label"},
+    'signage_signagetype': {"label_field": "label"},
+    'signage_color': {"label_field": "label"},
+    'signage_direction': {"label_field": "label"},
+    'signage_bladetype': {"label_field": "label"},
+    'infrastructure_infrastructurecondition': {"label_field": "label"},
 }
 
 
@@ -87,7 +94,6 @@ IMPORT_MODEL = {
     "common_attachment": {
         "excluded": "id",
         "correspondances_keys": {
-            "content_type_id": "django_content_type",
             "creator_id": "auth_user",
             "filetype_id": "common_filetype",
         },
@@ -384,4 +390,71 @@ IMPORT_MODEL = {
             },
         }
     },
+    "signage_signage": {
+        "primary_key" : "topo_object_id",
+        "correspondances_keys": {
+            "manager_id": "common_organism",
+            "condition_id": "infrastructure_infrastructurecondition",
+            "sealing_id": "signage_sealing",
+            "structure_id": "authent_structure",
+            "type_id": "signage_signagetype"
+        },
+        "filters": {
+            "not_null": [
+                "published",
+                "topo_object_id",
+                "name",
+                "description",
+                "code",
+                "structure_id",
+                "type_id"
+            ]
+        },
+        "foreign_keys": {
+            "topo_object_id": {
+                "table": "core_topology",
+                "col": "id"
+            }
+        },
+        "to_del_before": {
+            "signage_blade": "signage_id",
+        }
+    },
+    "signage_blade": {
+        "primary_key": "id",
+        "correspondances_keys": {
+            "topology_id": "core_topology",
+            "type_id": "signage_bladetype",
+            "color_id": "signage_color",
+            "condition_id": "infrastructure_infrastructurecondition",
+            "direction_id": "signage_direction",
+        },
+        "filters": {
+            "not_null": [
+                "number",
+                "topology_id",
+                "type_id",
+                "direction_id",
+                "signage_id",
+            ]
+        },
+        "foreign_keys": {
+            "signage_id": {
+                "table": "signage_signage",
+                "col": "topo_object_id"
+            }
+        },
+        "to_del_before": {
+            "signage_line": "blade_id",
+        }
+    },
+    "signage_line": {
+        "excluded": "id",
+        "foreign_keys": {
+            "blade_id": {
+                "table": "signage_blade",
+                "col": "id"
+            }
+        },
+    }
 }

@@ -96,7 +96,7 @@ def get_common_col_name(DB, db_source, table_name):
             WHERE table_name = '{table_name}'
                 AND table_schema = 'public'
         ), import_col AS (
-            SELECT * FROM  information_schema.COLUMNS
+            SELECT * FROM information_schema.COLUMNS
             WHERE table_name = '{table_name}'
                 AND table_schema = '{db_source}'
         )
