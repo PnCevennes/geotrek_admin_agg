@@ -74,7 +74,6 @@ IMPORT_MODEL = {
         },
     },
     "trekking_poi": {
-        "primary_key" : "topo_object_id",
         "correspondances_keys": {
             "structure_id": "authent_structure",
             "type_id": "trekking_poitype"
@@ -353,7 +352,6 @@ IMPORT_MODEL = {
         },
     },
     "signage_signage": {
-        "primary_key" : "topo_object_id",
         "correspondances_keys": {
             "manager_id": "common_organism",
             "condition_id": "infrastructure_infrastructurecondition",
@@ -380,7 +378,7 @@ IMPORT_MODEL = {
         }
     },
     "signage_blade": {
-        "primary_key": "id",
+        "excluded": "id",
         "correspondances_keys": {
             "topology_id": "core_topology",
             "type_id": "signage_bladetype",

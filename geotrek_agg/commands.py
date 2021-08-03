@@ -139,8 +139,8 @@ def populate_gta(name):
         )
         try:
             sql_d = table_object.generate_sql_delete()
-            DB.engine.execute(text(sql_d).execution_options(autocommit=True))
-            #print(sql_d)
+            #DB.engine.execute(text(sql_d).execution_options(autocommit=True))
+            print(sql_d)
             print(f" -- {table} data deleted!")
         except Exception as e:
             print('Erreur', e)
@@ -158,9 +158,9 @@ def populate_gta(name):
         )
         try:
             sql_i = table_object.generate_sql_insert()
-            DB.engine.execute(sql_i)
-            #print(sql_i)
-            print(f" -- {table} data inserted!")
+            #DB.engine.execute(sql_i)
+            print(sql_i)
+            print(f" -- {table} data inserted!\n")
         except Exception as e:
             print('Erreur', e)
             raise(e)
