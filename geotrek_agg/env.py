@@ -187,54 +187,6 @@ IMPORT_MODEL = {
             },
         }
     },
-    # "trekking_orderedtrekchild": {
-    #     "excluded": "id",
-    #     "filters": {
-    #         "not_null": ["child_id", "parent_id"]
-    #     },
-    #     "foreign_keys": {
-    #         "child_id": {
-    #             "table": "trekking_trek",
-    #             "col": "topo_object_id"
-    #         },
-    #         "parent_id": {
-    #             "table": "trekking_trek",
-    #             "col": "topo_object_id"
-    #         },
-    #     }
-    # },
-    # "trekking_trekrelationship": {
-    #     "excluded": "id",
-    #     "filters": {
-    #         "not_null": ["trek_a_id", "trek_b_id"]
-    #     },
-    #     "foreign_keys": {
-    #         "trek_a_id": {
-    #             "table": "trekking_trek",
-    #             "col": "topo_object_id"
-    #         },
-    #         "trek_b_id": {
-    #             "table": "trekking_trek",
-    #             "col": "topo_object_id"
-    #         },
-    #     }
-    # },
-    # "trekking_trek_pois_excluded": {
-    #     "excluded": "id",
-    #     "filters": {
-    #         "not_null": ["trek_id", "poi_id"]
-    #     },
-    #     "foreign_keys": {
-    #         "trek_id": {
-    #             "table": "trekking_trek",
-    #             "col": "topo_object_id"
-    #         },
-    #         "poi_id": {
-    #             "table": "trekking_poi",
-    #             "col": "topo_object_id"
-    #         },
-    #     }
-    # },
     "feedback_report": {
         "excluded": "id",
         "correspondances_keys": {
