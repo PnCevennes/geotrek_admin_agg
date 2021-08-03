@@ -53,7 +53,7 @@ TEST_BEFORE_IMPORT =  {
 # foreign_key TODO gestion des clés étrangères de type table d'import (exemple topo_object_id)
 IMPORT_MODEL = {
     "core_topology": {
-        "excluded": "id"
+        "excluded": "id",
     },
     "tourism_informationdesk": {
         "excluded": "id",
@@ -73,49 +73,6 @@ IMPORT_MODEL = {
             "not_null": ["category_id"]
         },
     },
-    "feedback_report": {
-        "excluded": "id",
-        "correspondances_keys": {
-            "category_id": "tourism_informationdesktype",
-            "status_id": "tourism_informationdesktype",
-            "activity_id": "tourism_informationdesktype",
-            "problem_magnitude_id": "tourism_informationdesktype",
-            "related_trek_id": "tourism_informationdesktype",
-        },
-        "filters": {
-            "not_null": [
-                "date_insert",
-                "date_update",
-                "email",
-                "comment",
-            ]
-        },
-    },
-    "common_attachment": {
-        "excluded": "id",
-        "correspondances_keys": {
-            "creator_id": "auth_user",
-            "filetype_id": "common_filetype",
-        },
-        "filters": {
-            "not_null": [
-                "object_id",
-                "attachment_file",
-                "attachment_video",
-                "auteur",
-                "titre",
-                "legende",
-                "marque",
-                "date_insert",
-                "date_update",
-                "content_type_id",
-                "creator_id",
-                "filetype_id",
-                "attachment_link",
-                "is_image",
-            ]
-        },
-    },
     "trekking_poi": {
         "primary_key" : "topo_object_id",
         "correspondances_keys": {
@@ -130,9 +87,6 @@ IMPORT_MODEL = {
                 "table": "core_topology",
                 "col": "id"
             }
-        },
-        "to_del_before": {
-            "trekking_trek_pois_excluded": "poi_id"
         }
     },
     "trekking_trek": {
@@ -152,11 +106,6 @@ IMPORT_MODEL = {
                 "table": "core_topology",
                 "col": "id"
             }
-        },
-        "to_del_before": {
-            "trekking_trek_pois_excluded": "trek_id",
-            "trekking_orderedtrekchild": "child_id",
-            "trekking_trekrelationship": "trek_a_id"
         },
         "cor_tables": {
             "trekking_trek_accessibilities": {
@@ -215,58 +164,94 @@ IMPORT_MODEL = {
                     "label_id": "common_label",
                 },
             },
-        }
-    },
-    "trekking_orderedtrekchild": {
-        "excluded": "id",
-        "no_delete": "true",
-        "filters": {
-            "not_null": ["child_id", "parent_id"]
-        },
-        "foreign_keys": {
-            "child_id": {
-                "table": "trekking_trek",
-                "col": "topo_object_id"
+            "trekking_trek_pois_excluded" : {
+                "excluded": "id",
+                "key": "trek_id",
+                "correspondances_keys": {
+                    "poi_id": "trekking_poi",
+                },
             },
-            "parent_id": {
-                "table": "trekking_trek",
-                "col": "topo_object_id"
+            "trekking_orderedtrekchild" : {
+                "excluded": "id",
+                "key": "child_id",
+                "correspondances_keys": {
+                    "parent_id": "trekking_trek",
+                },
             },
-        }
-    },
-    "trekking_trekrelationship": {
-        "excluded": "id",
-        "no_delete": "true",
-        "filters": {
-            "not_null": ["trek_a_id", "trek_b_id"]
-        },
-        "foreign_keys": {
-            "trek_a_id": {
-                "table": "trekking_trek",
-                "col": "topo_object_id"
-            },
-            "trek_b_id": {
-                "table": "trekking_trek",
-                "col": "topo_object_id"
+            "trekking_trekrelationship" : {
+                "excluded": "id",
+                "key": "trek_a_id",
+                "correspondances_keys": {
+                    "trek_b_id": "trekking_trek",
+                },
             },
         }
     },
-    "trekking_trek_pois_excluded": {
+    # "trekking_orderedtrekchild": {
+    #     "excluded": "id",
+    #     "filters": {
+    #         "not_null": ["child_id", "parent_id"]
+    #     },
+    #     "foreign_keys": {
+    #         "child_id": {
+    #             "table": "trekking_trek",
+    #             "col": "topo_object_id"
+    #         },
+    #         "parent_id": {
+    #             "table": "trekking_trek",
+    #             "col": "topo_object_id"
+    #         },
+    #     }
+    # },
+    # "trekking_trekrelationship": {
+    #     "excluded": "id",
+    #     "filters": {
+    #         "not_null": ["trek_a_id", "trek_b_id"]
+    #     },
+    #     "foreign_keys": {
+    #         "trek_a_id": {
+    #             "table": "trekking_trek",
+    #             "col": "topo_object_id"
+    #         },
+    #         "trek_b_id": {
+    #             "table": "trekking_trek",
+    #             "col": "topo_object_id"
+    #         },
+    #     }
+    # },
+    # "trekking_trek_pois_excluded": {
+    #     "excluded": "id",
+    #     "filters": {
+    #         "not_null": ["trek_id", "poi_id"]
+    #     },
+    #     "foreign_keys": {
+    #         "trek_id": {
+    #             "table": "trekking_trek",
+    #             "col": "topo_object_id"
+    #         },
+    #         "poi_id": {
+    #             "table": "trekking_poi",
+    #             "col": "topo_object_id"
+    #         },
+    #     }
+    # },
+    "feedback_report": {
         "excluded": "id",
-        "no_delete": "true",
-        "filters": {
-            "not_null": ["trek_id", "poi_id"]
+        "correspondances_keys": {
+            "category_id": "feedback_reportcategory",
+            "status_id": "feedback_reportstatus",
+            "activity_id": "feedback_reportactivity",
+            "problem_magnitude_id": "feedback_reportproblemmagnitude",
+            "related_trek_id": "trekking_trek",
         },
-        "foreign_keys": {
-            "trek_id": {
-                "table": "trekking_trek",
-                "col": "topo_object_id"
-            },
-            "poi_id": {
-                "table": "trekking_poi",
-                "col": "topo_object_id"
-            },
-        }
+        "filters": {
+            "not_null": [
+                "date_insert",
+                "date_update",
+                "email",
+                "comment",
+            ]
+        },
     },
     "tourism_touristiccontent": {
         "primary_key" : "id",
@@ -390,6 +375,31 @@ IMPORT_MODEL = {
             },
         }
     },
+    "common_attachment": {
+        "excluded": "id",
+        "correspondances_keys": {
+            "creator_id": "auth_user",
+            "filetype_id": "common_filetype",
+        },
+        "filters": {
+            "not_null": [
+                "object_id",
+                "attachment_file",
+                "attachment_video",
+                "auteur",
+                "titre",
+                "legende",
+                "marque",
+                "date_insert",
+                "date_update",
+                "content_type_id",
+                "creator_id",
+                "filetype_id",
+                "attachment_link",
+                "is_image",
+            ]
+        },
+    },
     "signage_signage": {
         "primary_key" : "topo_object_id",
         "correspondances_keys": {
@@ -415,9 +425,6 @@ IMPORT_MODEL = {
                 "table": "core_topology",
                 "col": "id"
             }
-        },
-        "to_del_before": {
-            "signage_blade": "signage_id",
         }
     },
     "signage_blade": {
@@ -443,9 +450,6 @@ IMPORT_MODEL = {
                 "table": "signage_signage",
                 "col": "topo_object_id"
             }
-        },
-        "to_del_before": {
-            "signage_line": "blade_id",
         }
     },
     "signage_line": {

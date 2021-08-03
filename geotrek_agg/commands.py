@@ -110,20 +110,27 @@ def import_mapping(name):
             click.echo(click.style('Table not found', fg='red'))
 
 @click.command("populate_gta")
+@click.argument("name")
 @with_appcontext
-def populate_gta():
+def populate_gta(name):
+    """
+        Insertion des données dans la BDD destination
+
+        Args:
+            name (string): nom de la source
+    """
     from geotrek_agg.app import DB
     from .import_content.sql import queries
     from geotrek_agg.env import IMPORT_MODEL
     from geotrek_agg.mapping_object import MappingObject
-    source = "pne"
+    from sqlalchemy import text
+
+    source = name
     # TODO TEST_BEFORE_IMPORT FIRST
 
-    # TODO clean source
-
-    # Import des données table par table
-    for table in IMPORT_MODEL:
-        print(f" -- Import table {table}")
+    # Suppression des données table par table (dans l'ordre inverse de l'insertion)
+    for table in reversed(IMPORT_MODEL):
+        print(f" -- Deleting table {table}...")
         table_object = MappingObject(
             DB=DB,
             data_source=source,
@@ -132,9 +139,28 @@ def populate_gta():
         )
         try:
             sql_d = table_object.generate_sql_delete()
-            print(sql_d)
+            DB.engine.execute(text(sql_d).execution_options(autocommit=True))
+            #print(sql_d)
+            print(f" -- {table} data deleted!")
+        except Exception as e:
+            print('Erreur', e)
+            raise(e)
+            exit
+
+    # Import des données table par table
+    for table in IMPORT_MODEL:
+        print(f" -- Importing table {table}...")
+        table_object = MappingObject(
+            DB=DB,
+            data_source=source,
+            table_name=table,
+            table_def=IMPORT_MODEL[table]
+        )
+        try:
             sql_i = table_object.generate_sql_insert()
-            print(sql_i)
+            DB.engine.execute(sql_i)
+            #print(sql_i)
+            print(f" -- {table} data inserted!")
         except Exception as e:
             print('Erreur', e)
             raise(e)

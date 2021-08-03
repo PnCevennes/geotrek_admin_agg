@@ -161,18 +161,8 @@ class MappingObject(object):
                 key=self._table_def["key"],
                 parent_table=self._table_def["parent_table"]
                 )
-        elif "no_delete" in self._table_def:
-            return ""
         else:
             sql = []
-            for del_bef in self._table_def.get("to_del_before",  []):
-                sql.append(
-                    self._generate_cor_sql_delete(
-                        table_name=del_bef,
-                        key=self._table_def["to_del_before"][del_bef],
-                        parent_table=self._get_parent_table()
-                    )
-                )
             for cor in self._cor_list:
                 sql.append(cor.generate_sql_delete())
             sql.append(self._generate_simple_sql_delete())
