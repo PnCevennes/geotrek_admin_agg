@@ -68,7 +68,7 @@ class MappingObject(object):
         # build select
         select_col = []
         for col in cols:
-            if col in self._table_def.get("correspondances_keys",  []):
+            if col in self._table_def.get("correspondances_keys",  []) and col != "creator_id":
                 # filter by correspondances_keys appel de la fonction geotrekagg_get_id_correspondance
                 select_col.append(
                     """geotrekagg_get_id_correspondance (
@@ -95,19 +95,17 @@ class MappingObject(object):
                         db_source=self._data_source
                     )
                 )
-            elif col == "attachment_file":
+            elif col == "attachment_file" and self._table_name == "common_attachment":
+                select_col.append("'' as attachment_file")
+            elif col == "attachment_link" and self._table_name == "common_attachment":
                 select_col.append(
                     """
-                        '' as {col}
-                    """.format(col=col))
-            elif col == "attachment_link":
+                        (SELECT url FROM geotrekagg_sources WHERE bdd_source = '{db_source}') || 'media/' || attachment_file as attachment_link
+                    """.format(db_source=self._data_source)
+                )
+            elif col == "creator_id" and self._table_name == "common_attachment":
                 select_col.append(
-                    """
-                        (SELECT url FROM geotrekagg_sources WHERE bdd_source = '{db_source}') || 'media/' || attachment_file as {col}
-                    """.format(
-                        db_source=self._data_source,
-                        col=col
-                    )
+                    "(SELECT id FROM auth_user WHERE username ILIKE '__internal__') as creator_id"
                 )
             else:
                 # retourne uniquement le nom de la colonne
