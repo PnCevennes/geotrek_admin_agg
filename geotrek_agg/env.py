@@ -1,7 +1,7 @@
 import logging
 
 
-COR_TABLE = {
+CAT_TABLE = {
     'authent_structure': {"label_field": "name"},
     'common_label': {"label_field": "name"},
     'common_reservationsystem': {"label_field": "name"},
@@ -37,7 +37,7 @@ COR_TABLE = {
 TEST_BEFORE_IMPORT =  {
     "trekking_poi": {
         "not_null" : {
-            "correspondances_keys" : {
+            "category_keys" : {
                 "structure_id": "authent_structure",
                 "type_id": "trekking_poitype"
             }
@@ -49,7 +49,7 @@ TEST_BEFORE_IMPORT =  {
 # Liste "ordonnée" des tables à importer
 # excluded : () liste des champs à exclure de l'import TODO devrait être une liste voir
 #   si l'absence de la clé ne pourrait pas juste signaler que la colonne à exclure est id
-# correspondances_keys : table_dictionaire = liste des champs relié à un élément de "vocabulaire"
+# category_keys : table_dictionaire = liste des champs relié à un élément de "vocabulaire"
 # foreign_key TODO gestion des clés étrangères de type table d'import (exemple topo_object_id)
 IMPORT_MODEL = {
     "core_topology": {
@@ -57,7 +57,7 @@ IMPORT_MODEL = {
     },
     "tourism_informationdesk": {
         "excluded": "id",
-        "correspondances_keys": {
+        "category_keys": {
             "type_id": "tourism_informationdesktype"
         },
         "filters": {
@@ -66,7 +66,7 @@ IMPORT_MODEL = {
     },
     "trekking_weblink": {
         "excluded": "id",
-        "correspondances_keys": {
+        "category_keys": {
             "category_id": "trekking_weblinkcategory"
         },
         "filters": {
@@ -74,7 +74,7 @@ IMPORT_MODEL = {
         },
     },
     "trekking_poi": {
-        "correspondances_keys": {
+        "category_keys": {
             "structure_id": "authent_structure",
             "type_id": "trekking_poitype"
         },
@@ -90,7 +90,7 @@ IMPORT_MODEL = {
     },
     "trekking_trek": {
         "primary_key" : "topo_object_id",
-        "correspondances_keys": {
+        "category_keys": {
             "practice_id": "trekking_practice",
             "difficulty_id": "trekking_difficultylevel",
             "route_id": "trekking_route",
@@ -110,77 +110,77 @@ IMPORT_MODEL = {
             "trekking_trek_accessibilities": {
                 "excluded": "id",
                 "key": "trek_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "accessibility_id": "trekking_accessibility",
                 },
             },
             "trekking_trek_information_desks" : {
                 "excluded": "id",
                 "key": "trek_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "informationdesk_id": "tourism_informationdesk",
                 },
             },
             "trekking_trek_networks" : {
                 "excluded": "id",
                 "key": "trek_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "treknetwork_id": "trekking_treknetwork",
                 },
             },
             "trekking_trek_portal" : {
                 "excluded": "id",
                 "key": "trek_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "targetportal_id": "common_targetportal",
                 },
             },
             "trekking_trek_source" : {
                 "excluded": "id",
                 "key": "trek_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "recordsource_id": "common_recordsource",
                 },
             },
             "trekking_trek_themes" : {
                 "excluded": "id",
                 "key": "trek_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "theme_id": "common_theme",
                 },
             },
             "trekking_trek_web_links" : {
                 "excluded": "id",
                 "key": "weblink_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "weblink_id": "common_sourceportal",
                 },
             },
             "trekking_trek_labels" : {
                 "excluded": "id",
                 "key": "trek_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "label_id": "common_label",
                 },
             },
             "trekking_trek_pois_excluded" : {
                 "excluded": "id",
                 "key": "trek_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "poi_id": "trekking_poi",
                 },
             },
             "trekking_orderedtrekchild" : {
                 "excluded": "id",
                 "key": "child_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "parent_id": "trekking_trek",
                 },
             },
             "trekking_trekrelationship" : {
                 "excluded": "id",
                 "key": "trek_a_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "trek_b_id": "trekking_trek",
                 },
             },
@@ -188,7 +188,7 @@ IMPORT_MODEL = {
     },
     "feedback_report": {
         "excluded": "id",
-        "correspondances_keys": {
+        "category_keys": {
             "category_id": "feedback_reportcategory",
             "status_id": "feedback_reportstatus",
             "activity_id": "feedback_reportactivity",
@@ -206,7 +206,7 @@ IMPORT_MODEL = {
     },
     "tourism_touristiccontent": {
         "primary_key" : "id",
-        "correspondances_keys": {
+        "category_keys": {
             "reservation_system_id": "common_reservationsystem",
             "category_id": "tourism_touristiccontentcategory",
             "structure_id": "authent_structure",
@@ -236,35 +236,35 @@ IMPORT_MODEL = {
             "tourism_touristiccontent_portal": {
                 "excluded": "id",
                 "key": "touristiccontent_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "targetportal_id": "common_targetportal",
                 },
             },
             "tourism_touristiccontent_source" : {
                 "excluded": "id",
                 "key": "touristiccontent_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "recordsource_id": "common_recordsource",
                 },
             },
             "tourism_touristiccontent_themes" : {
                 "excluded": "id",
                 "key": "touristiccontent_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "theme_id": "common_theme",
                 },
             },
             "tourism_touristiccontent_type1" : {
                 "excluded": "id",
                 "key": "touristiccontent_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "touristiccontenttype1_id": "tourism_touristiccontenttype",
                 },
             },
             "tourism_touristiccontent_type2" : {
                 "excluded": "id",
                 "key": "touristiccontent_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "touristiccontenttype2_id": "tourism_touristiccontenttype",
                 },
             },
@@ -272,7 +272,7 @@ IMPORT_MODEL = {
     },
     "tourism_touristicevent": {
         "primary_key" : "id",
-        "correspondances_keys": {
+        "category_keys": {
             "type_id": "common_reservationsystem",
             "structure_id": "authent_structure",
         },
@@ -306,21 +306,21 @@ IMPORT_MODEL = {
             "tourism_touristicevent_portal": {
                 "excluded": "id",
                 "key": "touristicevent_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "targetportal_id": "common_targetportal",
                 },
             },
             "tourism_touristicevent_source" : {
                 "excluded": "id",
                 "key": "touristicevent_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "recordsource_id": "common_recordsource",
                 },
             },
             "tourism_touristicevent_themes" : {
                 "excluded": "id",
                 "key": "touristicevent_id",
-                "correspondances_keys": {
+                "category_keys": {
                     "theme_id": "common_theme",
                 },
             },
@@ -328,7 +328,7 @@ IMPORT_MODEL = {
     },
     "common_attachment": {
         "excluded": "id",
-        "correspondances_keys": {
+        "category_keys": {
             "creator_id": "auth_user",
             "filetype_id": "common_filetype",
         },
@@ -352,7 +352,7 @@ IMPORT_MODEL = {
         },
     },
     "signage_signage": {
-        "correspondances_keys": {
+        "category_keys": {
             "manager_id": "common_organism",
             "condition_id": "infrastructure_infrastructurecondition",
             "sealing_id": "signage_sealing",
@@ -379,7 +379,7 @@ IMPORT_MODEL = {
     },
     "signage_blade": {
         "excluded": "id",
-        "correspondances_keys": {
+        "category_keys": {
             "topology_id": "core_topology",
             "type_id": "signage_bladetype",
             "color_id": "signage_color",

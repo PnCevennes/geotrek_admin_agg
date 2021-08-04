@@ -43,7 +43,7 @@ class MappingObject(object):
             cor_table_data["key"]: parent_table
         }
         cor_table_data["filters"] = {
-           "not_null": [k for k in cor_table_data["correspondances_keys"]]
+           "not_null": [k for k in cor_table_data["category_keys"]]
         }
         cor_table_data["filters"]["not_null"].append(cor_table_data["key"])
         
@@ -68,15 +68,15 @@ class MappingObject(object):
         # build select
         select_col = []
         for col in cols:
-            if col in self._table_def.get("correspondances_keys",  []) and col != "creator_id":
-                # filter by correspondances_keys appel de la fonction geotrekagg_get_id_correspondance
+            if col in self._table_def.get("category_keys",  []) and col != "creator_id":
+                # filter by category_keys appel de la fonction geotrekagg_get_id_correspondance
                 select_col.append(
                     """geotrekagg_get_id_correspondance (
                         {col}, '{table}', '{db_source}'
                     ) as {col}
                     """.format(
                         col=col,
-                        table=self._table_def["correspondances_keys"][col],
+                        table=self._table_def["category_keys"][col],
                         db_source=self._data_source
                     )
                 )
