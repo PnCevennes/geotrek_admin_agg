@@ -1,5 +1,5 @@
 import click
-from geotrek_agg.env import COR_TABLE
+from geotrek_agg.env import CAT_TABLE
 from geotrek_agg.models import GeotrekAggCorrespondances, GeotrekAggSources
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -15,10 +15,10 @@ def get_all_cor_data(DB):
         [type]: [description]
     """
     sql = []
-    for c in COR_TABLE:
+    for c in CAT_TABLE:
         sql.append(
             "SELECT  '{cor_table}' as table_source, id, {label} as label FROM public.{cor_table}".format(
-                cor_table=c, label=COR_TABLE[c]['label_field']
+                cor_table=c, label=CAT_TABLE[c]['label_field']
             )
         )
     query = ' UNION '.join(sql)
@@ -105,7 +105,12 @@ def get_common_col_name(DB, db_source, table_name):
         WHERE g.column_name = i.column_name;
     """
     try:
-        columns = DB.engine.execute(sql.format(db_source=db_source, table_name=table_name)).fetchall()
+        columns = DB.session.execute(
+            sql.format(
+                db_source=db_source,
+                table_name=table_name
+                )
+            ).fetchall()
         return [c[0] for c in columns]
     except Exception as e:
         raise(e)
@@ -132,7 +137,7 @@ def get_source(DB, name):
 
 def create_fdw_server(DB, name, db_name, host, port, user, password):
     """
-        Création du server fdw
+        Création du serveur fdw
 
     Args:
         DB ([connexion])
@@ -161,9 +166,13 @@ def create_fdw_server(DB, name, db_name, host, port, user, password):
             FROM SERVER server_{name}
             INTO {name};       
     """
-    DB.engine.execute(sql1)
-    click.echo(f"Serveur créé")
-    DB.engine.execute(sql2)
-    click.echo(f"User mapping effectué")
-    DB.engine.execute(sql3)
-    click.echo(f"Schéma importé")
+    try:
+        DB.session.execute(sql1)
+        click.echo(f"Serveur créé")
+        DB.session.execute(sql2)
+        click.echo(f"User mapping effectué")
+        DB.session.execute(sql3)
+        click.echo(f"Schéma importé")
+        DB.session.commit()
+    except Exception as e:
+        raise(e)

@@ -40,9 +40,14 @@ def insert_cor_data(DB, db_source, cor_table, fields):
 
     sql = sql_del + sql_ins
     try:
-        DB.engine.execute(
-            text(sql.format(db_source=db_source, cor_table=cor_table, label=fields)).execution_options(autocommit=True)
-        )
+        DB.session.execute(
+            sql.format(
+                db_source=db_source,
+                cor_table=cor_table,
+                label=fields
+                )
+            )
+        DB.session.commit()
         return True
     except ProgrammingError as e:
         if e.code == 'f405':
@@ -65,7 +70,13 @@ def auto_mapping(DB, cor_table, fields):
         WHERE c.table_origin = '{cor_table}' AND i.{label} = c.label_origin;
     """
     try:
-        DB.engine.execute(sql.format(cor_table=cor_table, label=fields))
+        DB.session.execute(
+            sql.format(
+                cor_table=cor_table,
+                label=fields
+                )
+            )
+        DB.session.commit()
     except SQLAlchemyError as e:
         current_app.logger.error(str(e.orig))
     except Exception as e:
