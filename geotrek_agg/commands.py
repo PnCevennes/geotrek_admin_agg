@@ -1,8 +1,9 @@
 import click
 from flask import current_app
 from flask.cli import with_appcontext
+from sqlalchemy.orm import Session
 
-from geotrek_agg.env import COR_TABLE
+from geotrek_agg.env import CAT_TABLE
 
 
 @click.command("create_db_schema")
@@ -101,10 +102,10 @@ def import_mapping(name):
     if not source:
         current_app.logger.info(f"La source {name} n'existe pas.")
         exit()
-    for c in COR_TABLE:
+    for c in CAT_TABLE:
         click.echo(f"Import table {c}")
-        if insert_cor_data(DB, 'pne', c, COR_TABLE[c]['label_field']):
-            auto_mapping(DB,  c, COR_TABLE[c]['label_field'])
+        if insert_cor_data(DB, 'pne', c, CAT_TABLE[c]['label_field']):
+            auto_mapping(DB,  c, CAT_TABLE[c]['label_field'])
             click.echo(click.style('Done', fg='green'))
         else:
             click.echo(click.style('Table not found', fg='red'))
@@ -128,43 +129,47 @@ def populate_gta(name):
     source = name
     # TODO TEST_BEFORE_IMPORT FIRST
 
-    # Suppression des données table par table (dans l'ordre inverse de l'insertion)
-    for table in reversed(IMPORT_MODEL):
-        print(f" -- Deleting table {table}...")
-        table_object = MappingObject(
-            DB=DB,
-            data_source=source,
-            table_name=table,
-            table_def=IMPORT_MODEL[table]
-        )
-        try:
-            sql_d = table_object.generate_sql_delete()
-            DB.engine.execute(text(sql_d).execution_options(autocommit=True))
-            #print(sql_d)
-            print(f" -- {table} data deleted!\n")
-        except Exception as e:
-            print('Erreur', e)
-            raise(e)
-            exit
+    sql_d = {}
+    sql_i = {}
 
-    # Import des données table par table
-    for table in IMPORT_MODEL:
-        print(f" -- Importing table {table}...")
+    # Alimentation du dictionnaire sql_d table par table
+    # (dans l'ordre inverse de l'insertion)
+    for table in reversed(IMPORT_MODEL):
         table_object = MappingObject(
             DB=DB,
             data_source=source,
             table_name=table,
             table_def=IMPORT_MODEL[table]
         )
-        try:
-            sql_i = table_object.generate_sql_insert()
-            DB.engine.execute(sql_i)
-            #print(sql_i)
-            print(f" -- {table} data inserted!\n")
-        except Exception as e:
-            print('Erreur', e)
-            raise(e)
-            exit
+        sql_d[table] = table_object.generate_sql_delete()
+
+    # Alimentation du dictionnaire sql_i table par table
+    for table in IMPORT_MODEL:
+        table_object = MappingObject(
+            DB=DB,
+            data_source=source,
+            table_name=table,
+            table_def=IMPORT_MODEL[table]
+        )
+        sql_i[table] = table_object.generate_sql_insert()
+
+    # Essai d'exécution des requêtes, puis commit de celles-ci en cas de succès
+    try:
+        for key, value in sql_d.items():
+            click.echo(f" -- Deleting table {key}...")
+            DB.session.execute(value)
+            click.echo(f" -- {key} data deleted!\n")            
+        for key, value in sql_i.items():
+            click.echo(f" -- Importing table {key}...")
+            DB.session.execute(value)
+            click.echo(f" -- {key} data inserted!\n")
+        DB.session.commit()
+        click.echo(click.style('Transaction committed', fg='green'))
+    except Exception as e:
+        click.echo(f"{e.orig}...")
+        exit()
+
+
 
 
 @click.command("create_functions")
@@ -232,5 +237,6 @@ def create_functions():
         END;
         $function$;
     """
-    DB.engine.execute(text(sql).execution_options(autocommit=True))
-    click.echo("Fait")
+    DB.session.execute(sql)
+    DB.session.commit()
+    click.echo(click.style("Fonctions créées", fg='green'))
