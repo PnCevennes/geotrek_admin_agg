@@ -1,18 +1,31 @@
 # geotrek_admin_agg
 
-Pour le fonctionnement d'une agrégation, des étapes nécessaires sont décrites dans '/geotrek_agg/import_content/aggregator_preparation' (création des uuids si non présents dans les bdd source, création des FDW, etc.).
-
-'aggregator_donnees.sql' est juste le script issu du SGBD qui permet l'insertion des données non catégorielles (treks, pois, touristicevent, etc.), son contenu va être transféré dans 'sql.py'
+Pour le fonctionnement d'une agrégation, des étapes nécessaires sont décrites dans `/scripts/aggregator_preparation.sql` (création des uuids si non présents dans les bdd source, création des FDW, etc.).
+ 
 
 # Prérequis
 
+## Base de données d' aggrégation 
+Installer les extensions suivantes en mode administrateur
+
 ```
-pip install flask flask-sqlalchemy psycopg2
-cd web/static && npm ci
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+CREATE EXTENSION IF NOT EXISTS postgres_fdw;
 ```
 
-Le fichier `geotrek_agg/import_content/aggregator_preparation.sql` comprend toutes les requêtes nécessaires aux étapes de préparation des bases de données présentées ci-dessous :
+Exécuter le script sql `/scripts/aggregator_preparation_dbmaster.sql` 
+Ce fichier comprend toutes les requêtes nécessaires aux étapes de préparation des bases de données présentées ci-dessous.
 
+## Préparation des bases filles de données source
+Installer l'extension suivante en mode administrateur
+
+```
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+```
+
+Exécuter le script sql `/scripts/aggregator_preparation_dbsource.sql` 
+
+# Descriptions scripts de préparation
 ## Préparation base de données source
 
 Les tables
@@ -28,6 +41,7 @@ Les tables
 - `signage_signage`
 - `signage_blade`
 - `signage_line`
+
 doivent avoir un champ `uuid` renseigné.
 
 ## Préparation base de données destination (aggregator)
@@ -55,7 +69,16 @@ Les tables catégorielles
 - `feedback_reportcategory`
 - `tourism_touristiccontentcategory`
 - `common_filetype`
+
 doivent être renseignées avec l'ensemble des catégories voulues (combinaison manuelle des catégories de toutes les bases de données sources).
+
+# Installation
+
+```
+pip install flask flask-sqlalchemy psycopg2
+cd web/static && npm ci
+```
+
 
 # Usage
 
