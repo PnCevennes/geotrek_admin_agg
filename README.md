@@ -95,11 +95,3 @@ flask add_source    # crée un foreign data wrapper et un schéma, complète la 
 flask import_mapping    # remplit la table geotrekagg_correspondances et propose un mapping automatique
 flask populate_gta  # retourne les commandes sql d'insertion en base
 ```
-
-
-# TODO import des données
-CONCEPTION :
-- use marshmallow for object definition
-
-Fonctionnalités:
-- plus plein de trucs
