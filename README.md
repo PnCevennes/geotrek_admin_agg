@@ -48,6 +48,7 @@ doivent avoir un champ `uuid` renseigné.
 ## Préparation base de données destination (aggregator)
 
 Les fonctions `geotrekagg_get_foreign_key()` et `geotrekagg_get_id_correspondance()` doivent être créées. Les mêmes tables que ci-dessus doivent avoir un champ `uuid`.
+
 Les tables catégorielles
 - `trekking_weblinkcategory`
 - `feedback_reportstatus`
