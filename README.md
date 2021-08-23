@@ -11,6 +11,7 @@ Installer les extensions suivantes en mode administrateur
 ```
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+CREATE EXTENSION IF NOT EXISTS unaccent;
 ```
 
 Exécuter le script sql `/scripts/aggregator_preparation_dbmaster.sql` 
