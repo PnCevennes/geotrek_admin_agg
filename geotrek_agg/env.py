@@ -206,6 +206,7 @@ IMPORT_MODEL = {
     },
     "tourism_touristiccontent": {
         "primary_key" : "id",
+        "excluded": "id",
         "category_keys": {
             "reservation_system_id": "common_reservationsystem",
             "category_id": "tourism_touristiccontentcategory",
@@ -272,6 +273,7 @@ IMPORT_MODEL = {
     },
     "tourism_touristicevent": {
         "primary_key" : "id",
+        "excluded": "id",
         "category_keys": {
             "type_id": "common_reservationsystem",
             "structure_id": "authent_structure",

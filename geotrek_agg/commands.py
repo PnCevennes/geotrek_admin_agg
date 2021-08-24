@@ -76,11 +76,6 @@ def add_source(name, host, port, db_name, user, password, overwrite, url):
             DB.session.rollback()
             current_app.logger.error("Impossible de créer bdd_source", str(e))
 
-    # Test if source exists
-    source = get_source(DB, name)
-    if source and not overwrite:
-        current_app.logger.error(f"La source {name} existe déjà. Pour la redéfinir utiliser l'option -o (overwrite)")
-        exit()
 
 
 @click.command("import_mapping")
@@ -104,7 +99,7 @@ def import_mapping(name):
         exit()
     for c in CAT_TABLE:
         click.echo(f"Import table {c}")
-        if insert_cor_data(DB, 'pne', c, CAT_TABLE[c]['label_field']):
+        if insert_cor_data(DB, name, c, CAT_TABLE[c]['label_field']):
             auto_mapping(DB,  c, CAT_TABLE[c]['label_field'])
             click.echo(click.style('Done', fg='green'))
         else:
@@ -158,19 +153,23 @@ def populate_gta(name):
         for key, value in sql_d.items():
             click.echo(f" -- Deleting table {key}...")
             DB.session.execute(value)
-            click.echo(f" -- {key} data deleted!\n")            
+            click.echo(f" -- {key} data deleted!\n")
+            DB.session.commit()
         for key, value in sql_i.items():
             click.echo(f" -- Importing table {key}...")
+            print(value)
             DB.session.execute(value)
             click.echo(f" -- {key} data inserted!\n")
-        DB.session.commit()
+            DB.session.commit()
+
         click.echo(click.style('Transaction committed', fg='green'))
     except Exception as e:
         click.echo(f"{e.orig}...")
         exit()
 
 
-
+# Fonction en doublons avec le script de préparation.
+#   a voir si pertinent car peut lisible par rapport à un script sql classique
 
 @click.command("create_functions")
 @with_appcontext

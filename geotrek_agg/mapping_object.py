@@ -14,7 +14,7 @@ class MappingObject(object):
         self.build_object()
 
     def build_object(self):
-        
+
         # build cor table
         cor_tables = self._table_def.get("cor_tables",  [])
         if not cor_tables:
@@ -35,7 +35,7 @@ class MappingObject(object):
         Returns:
             MappingObject: table de corrélation
         """
-        
+
         parent_table = self._get_parent_table()
         cor_table_data = self._table_def["cor_tables"][cor_table]
         cor_table_data["parent_table"] = parent_table
@@ -46,7 +46,7 @@ class MappingObject(object):
            "not_null": [k for k in cor_table_data["category_keys"]]
         }
         cor_table_data["filters"]["not_null"].append(cor_table_data["key"])
-        
+
         return MappingObject(
             DB=self._DB,
             data_source=self._data_source,
