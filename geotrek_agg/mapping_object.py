@@ -56,8 +56,12 @@ class MappingObject(object):
         )
 
     def generate_sql_insert(self):
+
         cols = get_common_col_name(self._DB, self._data_source, self._table_name)
 
+        SQL_MEDIA = ''
+        if "common_attachment" in self._table_def:
+            SQL_MEDIA = self._generate_attachment_sql_insert()
         if "excluded" in self._table_def:
             cols = list(filter(lambda col: col not in self._table_def["excluded"], cols))
         formated_cols = ','.join(['"{}"'.format(c) for c in cols])
@@ -94,18 +98,6 @@ class MappingObject(object):
                         col_r=self._table_def["foreign_keys"][col]["col"],
                         db_source=self._data_source
                     )
-                )
-            elif col == "attachment_file" and self._table_name == "common_attachment":
-                select_col.append("'' as attachment_file")
-            elif col == "attachment_link" and self._table_name == "common_attachment":
-                select_col.append(
-                    """
-                        (SELECT url FROM geotrekagg_sources WHERE bdd_source = '{db_source}') || 'media/' || attachment_file as attachment_link
-                    """.format(db_source=self._data_source)
-                )
-            elif col == "creator_id" and self._table_name == "common_attachment":
-                select_col.append(
-                    "(SELECT id FROM auth_user WHERE username ILIKE '__internal__') as creator_id"
                 )
             else:
                 # retourne uniquement le nom de la colonne
@@ -145,7 +137,7 @@ class MappingObject(object):
 
         SQL_COR = " ".join(cor_sql)
 
-        return f"{SQL_I} {SQL_S}; {SQL_COR}"
+        return f"{SQL_I} {SQL_S}; {SQL_COR}; {SQL_MEDIA};"
 
     def generate_sql_delete(self):
         """
@@ -204,6 +196,46 @@ class MappingObject(object):
             DELETE FROM {self._table_name} p
             USING {self._data_source}.{self._table_name} t
             WHERE p.uuid = t.uuid;
+        """
+        return sql
+
+    def _generate_attachment_sql_insert(self):
+        att_col = get_common_col_name(
+            DB=self._DB,
+            db_source=self._data_source,
+            table_name='common_attachment'
+        )
+        specific_col = [
+            "object_id",
+            "content_type_id",
+            "filetype_id",
+            "creator_id",
+            "attachment_file",
+            "attachment_video",
+            "attachment_link"
+        ]
+        excluded_col = [*specific_col, *["id"]]
+        f_att_col = ','.join(['"{}"'.format(c) for c in att_col if not c in excluded_col])
+        f_att_col_select = ','.join(['ca."{}"'.format(c) for c in att_col if not c in excluded_col])
+        f_att_col_specific = ','.join(['"{}"'.format(c) for c in specific_col])
+        sql = f"""
+            INSERT INTO common_attachment ({f_att_col}, {f_att_col_specific})
+            SELECT
+                {f_att_col_select},
+                p.{self._table_def["primary_key"]} as object_id,
+                geotrekagg_get_id_correspondance (content_type_id, 'django_content_type', '{self._data_source}') as content_type_id,
+                geotrekagg_get_id_correspondance (filetype_id, 'common_filetype', '{self._data_source}') as filetype_id,
+                (SELECT id FROM auth_user WHERE username ILIKE '__internal__' LIMIT 1) as creator_id,
+                '' AS attachment_file,
+                '' AS attachment_video,
+                (SELECT url FROM geotrekagg_sources WHERE bdd_source = '{self._data_source}' LIMIT 1) || 'media/' || COALESCE(attachment_file, attachment_video) as attachment_link
+            FROM {self._data_source}.{self._table_name} tp
+            JOIN {self._data_source}.common_attachment ca
+            ON tp.{self._table_def["primary_key"]} = ca.object_id
+            JOIN {self._data_source}.django_content_type dct
+            ON dct.id = ca.content_type_id AND dct.app_label ||'_' || dct.model = '{self._table_name}'
+            JOIN {self._table_name} p
+            ON tp.uuid = p.uuid
         """
         return sql
 

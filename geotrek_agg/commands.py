@@ -21,7 +21,7 @@ def create_db_schema():
 @click.option('-p', '--port', 'port', type=int, default=5432, show_default=True)
 @click.option('-d', '--db_name', 'db_name', required=True, type=str)
 @click.option('-U', '--user', 'user', required=True, type=str)
-@click.option('-p', '--password', 'password', required=True, type=str)
+@click.option('-P', '--password', 'password', required=True, type=str)
 @click.option('-u', '--url', 'url', required=True, type=str)
 @click.option('-o', '--overwrite', 'overwrite', is_flag=True)
 @with_appcontext
@@ -150,20 +150,31 @@ def populate_gta(name):
 
     # Essai d'exécution des requêtes, puis commit de celles-ci en cas de succès
     try:
+        DB.session.execute(f"""
+            ALTER TABLE core_topology DISABLE TRIGGER core_topology_latest_updated_d_tgr;
+
+            DELETE FROM common_attachment p
+            USING {name}.common_attachment s
+            WHERE s.uuid = p.uuid;
+        """)
         for key, value in sql_d.items():
             click.echo(f" -- Deleting table {key}...")
             DB.session.execute(value)
             click.echo(f" -- {key} data deleted!\n")
-            DB.session.commit()
         for key, value in sql_i.items():
             click.echo(f" -- Importing table {key}...")
-            print(value)
             DB.session.execute(value)
             click.echo(f" -- {key} data inserted!\n")
-            DB.session.commit()
+        DB.session.execute("""
+            UPDATE core_topology SET date_update = NOW()
+            WHERE id IN (SELECT id FROM core_topology ORDER BY date_update DESC LIMIT 1);
 
+            ALTER TABLE core_topology ENABLE TRIGGER core_topology_latest_updated_d_tgr;
+        """)
+        DB.session.commit()
         click.echo(click.style('Transaction committed', fg='green'))
     except Exception as e:
+
         click.echo(f"{e.orig}...")
         exit()
 

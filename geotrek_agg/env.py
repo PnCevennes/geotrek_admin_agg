@@ -31,10 +31,11 @@ CAT_TABLE = {
     'signage_direction': {"label_field": "label"},
     'signage_bladetype': {"label_field": "label"},
     'infrastructure_infrastructurecondition': {"label_field": "label"},
+    'django_content_type': {"label_field": "model"}
 }
 
 
-TEST_BEFORE_IMPORT =  {
+TEST_BEFORE_IMPORT = {
     "trekking_poi": {
         "not_null" : {
             "category_keys" : {
@@ -44,8 +45,6 @@ TEST_BEFORE_IMPORT =  {
         }
     },
 }
-
-
 # Liste "ordonnée" des tables à importer
 # excluded : () liste des champs à exclure de l'import TODO devrait être une liste voir
 #   si l'absence de la clé ne pourrait pas juste signaler que la colonne à exclure est id
@@ -74,6 +73,8 @@ IMPORT_MODEL = {
         },
     },
     "trekking_poi": {
+        "primary_key": "topo_object_id",
+        "common_attachment": "true",
         "category_keys": {
             "structure_id": "authent_structure",
             "type_id": "trekking_poitype"
@@ -90,6 +91,7 @@ IMPORT_MODEL = {
     },
     "trekking_trek": {
         "primary_key" : "topo_object_id",
+        "common_attachment": "true",
         "category_keys": {
             "practice_id": "trekking_practice",
             "difficulty_id": "trekking_difficultylevel",
@@ -206,6 +208,7 @@ IMPORT_MODEL = {
     },
     "tourism_touristiccontent": {
         "primary_key" : "id",
+        "common_attachment": "true",
         "excluded": "id",
         "category_keys": {
             "reservation_system_id": "common_reservationsystem",
@@ -214,23 +217,8 @@ IMPORT_MODEL = {
         },
         "filters": {
             "not_null": [
-                "date_insert",
-                "date_update",
-                "deleted",
-                "published",
-                "name",
-                "review",
-                "description_teaser",
-                "description",
-                "geom",
-                "contact",
-                "practical_info",
                 "reservation_id",
-                "approved",
-                "category_id",
-                "structure_id",
-                "published_en",
-                "published_fr",
+                "category_id"
             ]
         },
         "cor_tables": {
@@ -273,6 +261,7 @@ IMPORT_MODEL = {
     },
     "tourism_touristicevent": {
         "primary_key" : "id",
+        "common_attachment": "true",
         "excluded": "id",
         "category_keys": {
             "type_id": "common_reservationsystem",
@@ -280,28 +269,7 @@ IMPORT_MODEL = {
         },
         "filters": {
             "not_null": [
-                "date_insert",
-                "date_update",
-                "deleted",
-                "published",
-                "name",
-                "review",
-                "description_teaser",
-                "description",
-                "geom",
-                "duration",
-                "meeting_point",
-                "contact",
-                "organizer",
-                "speaker",
-                "accessibility",
-                "participant_number",
-                "booking",
-                "practical_info",
-                "approved",
-                "structure_id",
-                "published_en",
-                "published_fr",
+                "structure_id"
             ]
         },
         "cor_tables": {
@@ -328,31 +296,6 @@ IMPORT_MODEL = {
             },
         }
     },
-    "common_attachment": {
-        "excluded": "id",
-        "category_keys": {
-            "creator_id": "auth_user",
-            "filetype_id": "common_filetype",
-        },
-        "filters": {
-            "not_null": [
-                "object_id",
-                "attachment_file",
-                "attachment_video",
-                "auteur",
-                "titre",
-                "legende",
-                "marque",
-                "date_insert",
-                "date_update",
-                "content_type_id",
-                "creator_id",
-                "filetype_id",
-                "attachment_link",
-                "is_image",
-            ]
-        },
-    },
     "signage_signage": {
         "category_keys": {
             "manager_id": "common_organism",
@@ -363,11 +306,7 @@ IMPORT_MODEL = {
         },
         "filters": {
             "not_null": [
-                "published",
                 "topo_object_id",
-                "name",
-                "description",
-                "code",
                 "structure_id",
                 "type_id"
             ]
@@ -390,7 +329,6 @@ IMPORT_MODEL = {
         },
         "filters": {
             "not_null": [
-                "number",
                 "topology_id",
                 "type_id",
                 "direction_id",
@@ -412,5 +350,10 @@ IMPORT_MODEL = {
                 "col": "id"
             }
         },
+        "filters": {
+            "not_null": [
+                "blade_id"
+            ]
+        }
     }
 }
