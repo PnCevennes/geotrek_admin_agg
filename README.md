@@ -11,6 +11,7 @@ Installer les extensions suivantes en mode administrateur
 ```
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS postgres_fdw;
+CREATE EXTENSION IF NOT EXISTS unaccent;
 ```
 
 Exécuter le script sql `/scripts/aggregator_preparation_dbmaster.sql` 
@@ -47,6 +48,7 @@ doivent avoir un champ `uuid` renseigné.
 ## Préparation base de données destination (aggregator)
 
 Les fonctions `geotrekagg_get_foreign_key()` et `geotrekagg_get_id_correspondance()` doivent être créées. Les mêmes tables que ci-dessus doivent avoir un champ `uuid`.
+
 Les tables catégorielles
 - `trekking_weblinkcategory`
 - `feedback_reportstatus`
@@ -93,11 +95,3 @@ flask add_source    # crée un foreign data wrapper et un schéma, complète la 
 flask import_mapping    # remplit la table geotrekagg_correspondances et propose un mapping automatique
 flask populate_gta  # retourne les commandes sql d'insertion en base
 ```
-
-
-# TODO import des données
-CONCEPTION :
-- use marshmallow for object definition
-
-Fonctionnalités:
-- plus plein de trucs
