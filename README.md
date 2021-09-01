@@ -47,7 +47,7 @@ doivent avoir un champ `uuid` renseigné.
 
 ## Préparation base de données destination (aggregator)
 
-Les fonctions `geotrekagg_get_foreign_key()` et `geotrekagg_get_id_correspondance()` doivent être créées. Les mêmes tables que ci-dessus doivent avoir un champ `uuid`.
+Les fonctions `geotrekagg_get_foreign_key()` et `geotrekagg_get_category_id()` doivent être créées. Les mêmes tables que ci-dessus doivent avoir un champ `uuid`.
 
 Les tables catégorielles
 - `trekking_weblinkcategory`
@@ -89,9 +89,9 @@ export FLASK_APP=geotrek_agg/app
 flask *commande*    # lance une des commandes définies dans geotrek_agg/commands.py
 ```
 ```
-flask create_functions  # crée les fonctions SQL geotrekagg_get_id_correspondance() et geotrekagg_get_foreign_key()
 flask create_db_schema  # crée les tables geotrekagg_source et geotrekagg_correspondances
 flask add_source    # crée un foreign data wrapper et un schéma, complète la table geotrekagg_source
 flask import_mapping    # remplit la table geotrekagg_correspondances et propose un mapping automatique
+flask create_functions  # crée les fonctions SQL geotrekagg_get_category_id() et geotrekagg_get_foreign_key()
 flask populate_gta  # retourne les commandes sql d'insertion en base
 ```

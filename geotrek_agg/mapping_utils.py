@@ -68,7 +68,7 @@ def auto_mapping(DB, cor_table, fields):
     sql = """
         UPDATE public.geotrekagg_correspondances c SET id_destination = i.id
         FROM public.{cor_table} i
-        WHERE c.table_origin = '{cor_table}' AND unaccent(i.{label}) ilike unaccent(c.label_origin);
+        WHERE c.table_origin = '{cor_table}' AND unaccent(i.{label}) ILIKE unaccent(c.label_origin);
     """
     try:
         DB.session.execute(

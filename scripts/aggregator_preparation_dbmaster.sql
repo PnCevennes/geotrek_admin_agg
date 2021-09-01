@@ -27,7 +27,7 @@ CREATE INDEX index_signage_blade_uuid ON signage_blade USING btree (uuid);
 CREATE INDEX index_signage_line_uuid ON signage_line USING btree (uuid);
 
 -------FONCTION D'OBTENTION DU NOUVEL ID D'UNE CATEGORIE
-CREATE OR REPLACE FUNCTION public.geotrekagg_get_id_correspondance(
+CREATE OR REPLACE FUNCTION public.geotrekagg_get_category_id(
 	_initial_id integer,
 	_table_origin character varying,
 	_db_source character varying

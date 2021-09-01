@@ -73,9 +73,9 @@ class MappingObject(object):
         select_col = []
         for col in cols:
             if col in self._table_def.get("category_keys",  []) and col != "creator_id":
-                # filter by category_keys appel de la fonction geotrekagg_get_id_correspondance
+                # filter by category_keys appel de la fonction geotrekagg_get_category_id
                 select_col.append(
-                    """geotrekagg_get_id_correspondance (
+                    """geotrekagg_get_category_id (
                         {col}, '{table}', '{db_source}'
                     ) as {col}
                     """.format(
@@ -223,8 +223,8 @@ class MappingObject(object):
             SELECT
                 {f_att_col_select},
                 p.{self._table_def["primary_key"]} as object_id,
-                geotrekagg_get_id_correspondance (content_type_id, 'django_content_type', '{self._data_source}') as content_type_id,
-                geotrekagg_get_id_correspondance (filetype_id, 'common_filetype', '{self._data_source}') as filetype_id,
+                geotrekagg_get_category_id (content_type_id, 'django_content_type', '{self._data_source}') as content_type_id,
+                geotrekagg_get_category_id (filetype_id, 'common_filetype', '{self._data_source}') as filetype_id,
                 (SELECT id FROM auth_user WHERE username ILIKE '__internal__' LIMIT 1) as creator_id,
                 '' AS attachment_file,
                 '' AS attachment_video,

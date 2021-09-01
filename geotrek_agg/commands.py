@@ -190,7 +190,7 @@ def create_functions():
     click.echo("Création des fonctions...")
     sql = f"""
         -------FONCTION D'OBTENTION DU NOUVEL ID D'UNE CATEGORIE
-        CREATE OR REPLACE FUNCTION public.geotrekagg_get_id_correspondance(
+        CREATE OR REPLACE FUNCTION public.geotrekagg_get_category_id(
             _initial_id integer,
             _table_origin character varying,
             _db_source character varying
