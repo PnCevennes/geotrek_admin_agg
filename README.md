@@ -93,5 +93,5 @@ flask create_db_schema  # crée les tables geotrekagg_source et geotrekagg_corre
 flask add_source    # crée un foreign data wrapper et un schéma, complète la table geotrekagg_source
 flask import_mapping    # remplit la table geotrekagg_correspondances et propose un mapping automatique
 flask create_functions  # crée les fonctions SQL geotrekagg_get_category_id() et geotrekagg_get_foreign_key()
-flask populate_gta  # retourne les commandes sql d'insertion en base
+flask populate_gta  # supprime les données de la source existantes dans l'aggregator et insère les nouvelles
 ```
