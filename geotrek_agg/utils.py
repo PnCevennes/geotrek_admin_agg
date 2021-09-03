@@ -1,5 +1,5 @@
-
-from geotrek_agg.env import COR_TABLE
+import click
+from geotrek_agg.env import CAT_TABLE
 from geotrek_agg.models import GeotrekAggCorrespondances, GeotrekAggSources
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -15,10 +15,10 @@ def get_all_cor_data(DB):
         [type]: [description]
     """
     sql = []
-    for c in COR_TABLE:
+    for c in CAT_TABLE:
         sql.append(
             "SELECT  '{cor_table}' as table_source, id, {label} as label FROM public.{cor_table}".format(
-                cor_table=c, label=COR_TABLE[c]['label_field']
+                cor_table=c, label=CAT_TABLE[c]['label_field']
             )
         )
     query = ' UNION '.join(sql)
@@ -96,7 +96,7 @@ def get_common_col_name(DB, db_source, table_name):
             WHERE table_name = '{table_name}'
                 AND table_schema = 'public'
         ), import_col AS (
-            SELECT * FROM  information_schema.COLUMNS
+            SELECT * FROM information_schema.COLUMNS
             WHERE table_name = '{table_name}'
                 AND table_schema = '{db_source}'
         )
@@ -105,7 +105,12 @@ def get_common_col_name(DB, db_source, table_name):
         WHERE g.column_name = i.column_name;
     """
     try:
-        columns = DB.engine.execute(sql.format(db_source=db_source, table_name=table_name)).fetchall()
+        columns = DB.session.execute(
+            sql.format(
+                db_source=db_source,
+                table_name=table_name
+                )
+            ).fetchall()
         return [c[0] for c in columns]
     except Exception as e:
         raise(e)
@@ -132,7 +137,7 @@ def get_source(DB, name):
 
 def create_fdw_server(DB, name, db_name, host, port, user, password):
     """
-        Création du server fdw
+        Création du serveur fdw
 
     Args:
         DB ([connexion])
@@ -143,15 +148,31 @@ def create_fdw_server(DB, name, db_name, host, port, user, password):
         password ([string]): mot de passe de l'utilisateur
     """
 
-    sql = f"""
+    sql1 = f"""
         DROP SERVER IF EXISTS server_{name} CASCADE;
         CREATE SERVER IF NOT EXISTS server_{name}
                 FOREIGN DATA WRAPPER postgres_fdw
                 OPTIONS (host '{host}', port '{port}', dbname '{db_name}');
-
+    """
+    sql2 = f"""
         CREATE USER MAPPING FOR dbadmin
             SERVER server_{name}
             OPTIONS (user '{user}', password '{password}');
     """
-    print(sql)
-    DB.engine.execute(sql)
+    sql3= f"""
+        DROP SCHEMA IF EXISTS {name};
+        CREATE SCHEMA {name};
+        IMPORT FOREIGN SCHEMA public
+            FROM SERVER server_{name}
+            INTO {name};       
+    """
+    try:
+        DB.session.execute(sql1)
+        click.echo(f"Serveur créé")
+        DB.session.execute(sql2)
+        click.echo(f"User mapping effectué")
+        DB.session.execute(sql3)
+        click.echo(f"Schéma importé")
+        DB.session.commit()
+    except Exception as e:
+        raise(e)

@@ -1,6 +1,5 @@
-------CREATION UUIDs dans BDD source
 
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+------CREATION UUIDs dans BDD source
 ALTER TABLE core_topology ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 ALTER TABLE common_attachment ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 ALTER TABLE tourism_informationdesk ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
@@ -14,40 +13,18 @@ ALTER TABLE signage_signage ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_gene
 ALTER TABLE signage_blade ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 ALTER TABLE signage_line ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 
-------CREATION CHAMPS UUIDs dans BDD agg (sans génération)
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
-ALTER TABLE core_topology ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE common_attachment ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE tourism_informationdesk ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE tourism_touristiccontent ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE tourism_touristicevent ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE feedback_report ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE trekking_trek ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE trekking_poi ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE trekking_weblink ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE signage_signage ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE signage_blade ADD COLUMN IF NOT EXISTS uuid uuid;
-ALTER TABLE signage_line ADD COLUMN IF NOT EXISTS uuid uuid;
-
-
-
-----MISE EN PLACE FDW dans BDD agg
-CREATE EXTENSION IF NOT EXISTS postgres_fdw;
-
---DROP SERVER IF EXISTS server_pne CASCADE;
-CREATE SERVER IF NOT EXISTS server_pne
-        FOREIGN DATA WRAPPER postgres_fdw
-        OPTIONS (host 'localhost', port '5432', dbname 'geotrek_pne');
-
-CREATE USER MAPPING FOR dbadmin
-    SERVER server_pne
-    OPTIONS (user 'user', password 'password');
-
---DROP SCHEMA IF EXISTS pne;
-CREATE SCHEMA pne;
-IMPORT FOREIGN SCHEMA public
-    FROM SERVER server_pne
-    INTO pne;
+CREATE INDEX index_core_topology_uuid ON core_topology USING btree (uuid);
+CREATE INDEX index_common_attachment_uuid ON common_attachment USING btree (uuid);
+CREATE INDEX index_tourism_informationdesk_uuid ON tourism_informationdesk USING btree (uuid);
+CREATE INDEX index_tourism_touristiccontent_uuid ON tourism_touristiccontent USING btree (uuid);
+CREATE INDEX index_tourism_touristicevent_uuid ON tourism_touristicevent USING btree (uuid);
+CREATE INDEX index_feedback_report_uuid ON feedback_report USING btree (uuid);
+CREATE INDEX index_trekking_trek_uuid ON trekking_trek USING btree (uuid);
+CREATE INDEX index_trekking_poi_uuid ON trekking_poi USING btree (uuid);
+CREATE INDEX index_trekking_weblink_uuid ON trekking_weblink USING btree (uuid);
+CREATE INDEX index_signage_signage_uuid ON signage_signage USING btree (uuid);
+CREATE INDEX index_signage_blade_uuid ON signage_blade USING btree (uuid);
+CREATE INDEX index_signage_line_uuid ON signage_line USING btree (uuid);
 
 -------FONCTION D'OBTENTION DU NOUVEL ID D'UNE CATEGORIE
 CREATE OR REPLACE FUNCTION public.geotrekagg_get_category_id(
@@ -109,27 +86,3 @@ BEGIN
 END;
 $function$
 ;
-
-
-
-
-----COMPARAISON SCHEMAS, permet d'identifier quelles sont les colonnes qui diffèrent dans les deux schémas
-SELECT COALESCE(c1.table_name, c2.table_name) AS table_name,
-       COALESCE(c1.column_name, c2.column_name) AS table_column,
-       c1.column_name AS pnc,
-       c2.column_name AS pne
-FROM
-    (SELECT table_name,
-            column_name
-     FROM information_schema.COLUMNS c
-     WHERE c.table_schema = 'pnc') c1
-FULL JOIN
-         (SELECT table_name,
-                 column_name
-          FROM information_schema.COLUMNS c
-          WHERE c.table_schema = 'pne') c2
-ON c1.table_name = c2.table_name AND c1.column_name = c2.column_name
-WHERE c1.column_name IS NULL
-      OR c2.column_name IS NULL
-ORDER BY table_name,
-         table_column;

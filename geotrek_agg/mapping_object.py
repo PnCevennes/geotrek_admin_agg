@@ -14,6 +14,7 @@ class MappingObject(object):
         self.build_object()
 
     def build_object(self):
+
         # build cor table
         cor_tables = self._table_def.get("cor_tables",  [])
         if not cor_tables:
@@ -21,6 +22,7 @@ class MappingObject(object):
 
         for cor_table in cor_tables:
             self._cor_list.append(self.build_cor_object(cor_table))
+
 
     def build_cor_object(self, cor_table):
         """
@@ -33,19 +35,18 @@ class MappingObject(object):
         Returns:
             MappingObject: table de corrélation
         """
-        parent_table = {
-            "table": self._table_name,
-            "col": self._table_def["primary_key"]
-        }
 
+        parent_table = self._get_parent_table()
         cor_table_data = self._table_def["cor_tables"][cor_table]
         cor_table_data["parent_table"] = parent_table
         cor_table_data["foreign_keys"] = {
             cor_table_data["key"]: parent_table
         }
         cor_table_data["filters"] = {
-            "not_null": [k for k in cor_table_data["correspondances_keys"]]
+           "not_null": [k for k in cor_table_data["category_keys"]]
         }
+        cor_table_data["filters"]["not_null"].append(cor_table_data["key"])
+
         return MappingObject(
             DB=self._DB,
             data_source=self._data_source,
@@ -55,8 +56,12 @@ class MappingObject(object):
         )
 
     def generate_sql_insert(self):
+
         cols = get_common_col_name(self._DB, self._data_source, self._table_name)
 
+        SQL_MEDIA = ''
+        if "common_attachment" in self._table_def:
+            SQL_MEDIA = self._generate_attachment_sql_insert()
         if "excluded" in self._table_def:
             cols = list(filter(lambda col: col not in self._table_def["excluded"], cols))
         formated_cols = ','.join(['"{}"'.format(c) for c in cols])
@@ -67,15 +72,15 @@ class MappingObject(object):
         # build select
         select_col = []
         for col in cols:
-            if col in self._table_def.get("correspondances_keys",  []):
-                # filter by correspondances_keys appel de la fonction geotrekagg_get_id_correspondance
+            if col in self._table_def.get("category_keys",  []) and col != "creator_id":
+                # filter by category_keys appel de la fonction geotrekagg_get_category_id
                 select_col.append(
-                    """geotrekagg_get_id_correspondance (
+                    """geotrekagg_get_category_id (
                         {col}, '{table}', '{db_source}'
                     ) as {col}
                     """.format(
                         col=col,
-                        table=self._table_def["correspondances_keys"][col],
+                        table=self._table_def["category_keys"][col],
                         db_source=self._data_source
                     )
                 )
@@ -132,7 +137,7 @@ class MappingObject(object):
 
         SQL_COR = " ".join(cor_sql)
 
-        return f"{SQL_I} {SQL_S}; {SQL_COR}"
+        return f"{SQL_I} {SQL_S}; {SQL_COR}; {SQL_MEDIA};"
 
     def generate_sql_delete(self):
         """
@@ -141,7 +146,11 @@ class MappingObject(object):
         if self._is_cor:
             # Génération du code sql de deletion des tables de
             #   correlations
-            return self._generate_cor_sql_delete()
+            return self._generate_cor_sql_delete(
+                table_name=self._table_name,
+                key=self._table_def["key"],
+                parent_table=self._table_def["parent_table"]
+                )
         else:
             sql = []
             for cor in self._cor_list:
@@ -151,12 +160,12 @@ class MappingObject(object):
 
             return sql
 
-    def _generate_cor_sql_delete(self):
+    def _generate_cor_sql_delete(self, table_name, key, parent_table):
         """
             Génération du code sql de deletion des tables de
             correlations
         """
-        parent_table = self._table_def["parent_table"]
+        # parent_table = self._table_def["parent_table"]
 
         sql = """
             WITH to_del AS (
@@ -172,8 +181,8 @@ class MappingObject(object):
             parent_col_id=parent_table["col"],
             parent_table_name=parent_table["table"],
             source=self._data_source,
-            table_name=self._table_name,
-            col_id=self._table_def["key"]
+            table_name=table_name,
+            col_id=key
         )
         return sql
 
@@ -189,3 +198,49 @@ class MappingObject(object):
             WHERE p.uuid = t.uuid;
         """
         return sql
+
+    def _generate_attachment_sql_insert(self):
+        att_col = get_common_col_name(
+            DB=self._DB,
+            db_source=self._data_source,
+            table_name='common_attachment'
+        )
+        specific_col = [
+            "object_id",
+            "content_type_id",
+            "filetype_id",
+            "creator_id",
+            "attachment_file",
+            "attachment_video",
+            "attachment_link"
+        ]
+        excluded_col = [*specific_col, *["id"]]
+        f_att_col = ','.join(['"{}"'.format(c) for c in att_col if not c in excluded_col])
+        f_att_col_select = ','.join(['ca."{}"'.format(c) for c in att_col if not c in excluded_col])
+        f_att_col_specific = ','.join(['"{}"'.format(c) for c in specific_col])
+        sql = f"""
+            INSERT INTO common_attachment ({f_att_col}, {f_att_col_specific})
+            SELECT
+                {f_att_col_select},
+                p.{self._table_def["primary_key"]} as object_id,
+                geotrekagg_get_category_id (content_type_id, 'django_content_type', '{self._data_source}') as content_type_id,
+                geotrekagg_get_category_id (filetype_id, 'common_filetype', '{self._data_source}') as filetype_id,
+                (SELECT id FROM auth_user WHERE username ILIKE '__internal__' LIMIT 1) as creator_id,
+                '' AS attachment_file,
+                '' AS attachment_video,
+                (SELECT url FROM geotrekagg_sources WHERE bdd_source = '{self._data_source}' LIMIT 1) || 'media/' || COALESCE(attachment_file, attachment_video) as attachment_link
+            FROM {self._data_source}.{self._table_name} tp
+            JOIN {self._data_source}.common_attachment ca
+            ON tp.{self._table_def["primary_key"]} = ca.object_id
+            JOIN {self._data_source}.django_content_type dct
+            ON dct.id = ca.content_type_id AND dct.app_label ||'_' || dct.model = '{self._table_name}'
+            JOIN {self._table_name} p
+            ON tp.uuid = p.uuid
+        """
+        return sql
+
+    def _get_parent_table(self):
+        return {
+            "table": self._table_name,
+            "col": self._table_def["primary_key"]
+        }
