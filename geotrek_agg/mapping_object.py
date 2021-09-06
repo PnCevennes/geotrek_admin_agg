@@ -121,7 +121,7 @@ class MappingObject(object):
         else:
             formated_filter = ""
         SQL_S = f"""
-            SELECT *
+            SELECT DISTINCT *
             FROM (
                 SELECT {formated_insert_col}
                 FROM {self._data_source}.{self._table_name}
@@ -137,7 +137,16 @@ class MappingObject(object):
 
         SQL_COR = " ".join(cor_sql)
 
-        return f"{SQL_I} {SQL_S}; {SQL_COR}; {SQL_MEDIA};"
+        # Si ce n'est pas une table de corespondance
+        #   et qu'il existe un champ uuid
+        # alors enregistrements des uuid importés
+        # dans la table geotrekagg_log_imported_uuid
+        if not self._is_cor and 'uuid' in cols:
+            SQL_F = self._generate_insert_into_log_table(SQL_I, SQL_S)
+        else:
+            SQL_F = f"{SQL_I} {SQL_S}"
+
+        return f"{SQL_F}; {SQL_COR}; {SQL_MEDIA};"
 
     def generate_sql_delete(self):
         """
@@ -158,6 +167,14 @@ class MappingObject(object):
             sql.append(self._generate_simple_sql_delete())
             sql = " ".join(sql)
 
+            # Ajout suppression des logs qui n'existes plus
+            sql = sql + f"""
+                    WITH uuid_list AS (
+                        {self._generate_delete_uuid_list()}
+                    )
+                    DELETE FROM geotrekagg_log_imported_uuid d
+                    USING uuid_list u
+                    WHERE u.uuid = d.uuid;"""
             return sql
 
     def _generate_cor_sql_delete(self, table_name, key, parent_table):
@@ -168,16 +185,19 @@ class MappingObject(object):
         # parent_table = self._table_def["parent_table"]
 
         sql = """
-            WITH to_del AS (
+            WITH uuid_list AS (
+                {sql_uuid_list}
+            ), to_del AS (
                 SELECT p.{parent_col_id} AS id_to_del
                 FROM {parent_table_name} p
-                JOIN {source}.{parent_table_name} t
+                JOIN uuid_list t
                 ON p.uuid = t.uuid
             )
             DELETE FROM {table_name} p
             USING to_del
             WHERE p.{col_id} = to_del.id_to_del;
         """.format(
+            sql_uuid_list=self._generate_delete_uuid_list(),
             parent_col_id=parent_table["col"],
             parent_table_name=parent_table["table"],
             source=self._data_source,
@@ -193,11 +213,55 @@ class MappingObject(object):
         """
         # TODO : test uuid exists
         sql = f"""
+            WITH uuid_list AS (
+                {self._generate_delete_uuid_list()}
+            )
             DELETE FROM {self._table_name} p
-            USING {self._data_source}.{self._table_name} t
+            USING uuid_list t
             WHERE p.uuid = t.uuid;
         """
         return sql
+
+    def _generate_delete_uuid_list(self):
+        """
+            Selection de la liste des uuid à supprimer
+            pour une table "parent"
+        """
+        if self._is_cor:
+            table_name = self._table_def["parent_table"]["table"]
+        else:
+            table_name = self._table_name
+        return f"""
+            SELECT uuid
+            FROM geotrekagg_log_imported_uuid l
+            WHERE table_origin = '{table_name}'
+                AND bdd_source ='{self._data_source}'
+        """
+
+    def _generate_insert_into_log_table(self, SQL_I, SQL_S):
+
+        """
+            Tracage des données insérées dans la table geotrekagg_log_imported_uuid
+
+            SQL_I : commande insert
+            SQL_S : commande de selection des données à importer
+
+        """
+        F_SQL = f"""with _insert as
+            (
+                {SQL_I}
+                {SQL_S}
+                RETURNING uuid
+            )
+            INSERT INTO geotrekagg_log_imported_uuid
+            (bdd_source, uuid, table_origin)
+            select '{self._data_source}', uuid , '{self._table_name}'
+            FROM _insert
+            ON CONFLICT DO NOTHING;
+            """
+
+        return F_SQL
+
 
     def _generate_attachment_sql_insert(self):
         att_col = get_common_col_name(
