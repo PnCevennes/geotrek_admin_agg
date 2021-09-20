@@ -53,10 +53,13 @@ def insert_cor_data(DB, db_source, cor_table, fields):
     except ProgrammingError as e:
         if e.code == 'f405':
             return False
+        DB.session.rollback()
     except SQLAlchemyError as e:
         current_app.logger.error(str(e.orig))
+        DB.session.rollback()
     except Exception as e:
         current_app.logger.error(str(e))
+        DB.session.rollback()
 
 
 def auto_mapping(DB, cor_table, fields):
