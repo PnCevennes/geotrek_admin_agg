@@ -1,7 +1,6 @@
 import os
 
 from flask import Flask
-from flask import render_template, request, url_for, redirect
 from flask_sqlalchemy import SQLAlchemy
 
 

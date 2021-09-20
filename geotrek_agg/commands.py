@@ -116,7 +116,6 @@ def populate_gta(name):
             name (string): nom de la source
     """
     from geotrek_agg.app import DB
-    from .import_content.sql import queries
     from geotrek_agg.env import IMPORT_MODEL
     from geotrek_agg.mapping_object import MappingObject
     from sqlalchemy import text
@@ -152,7 +151,7 @@ def populate_gta(name):
     try:
         DB.session.execute(f"""
             ALTER TABLE core_topology DISABLE TRIGGER core_topology_latest_updated_d_tgr;
-
+            ALTER TABLE core_topology DISABLE TRIGGER core_topology_geom_iu_tgr;
             DELETE FROM common_attachment p
             USING {name}.common_attachment s
             WHERE s.uuid = p.uuid;
@@ -168,11 +167,16 @@ def populate_gta(name):
         DB.session.execute("""
             UPDATE core_topology SET date_update = NOW()
             WHERE id IN (SELECT id FROM core_topology ORDER BY date_update DESC LIMIT 1);
-
-            ALTER TABLE core_topology ENABLE TRIGGER core_topology_latest_updated_d_tgr;
         """)
         DB.session.commit()
         click.echo(click.style('Transaction committed', fg='green'))
+
+        # Réactivation des trigger
+        DB.session.execute("""
+            ALTER TABLE core_topology ENABLE TRIGGER core_topology_latest_updated_d_tgr;
+            ALTER TABLE core_topology ENABLE TRIGGER core_topology_geom_iu_tgr;
+        """)
+        DB.session.commit()
     except Exception as e:
 
         click.echo(f"{e.orig}...")

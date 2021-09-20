@@ -1,4 +1,7 @@
 
+ALTER TABLE common_attachment ALTER COLUMN attachment_link TYPE varchar(500);
+
+
 ------CREATION UUIDs dans BDD source
 ALTER TABLE core_topology ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
 ALTER TABLE common_attachment ADD COLUMN IF NOT EXISTS uuid uuid DEFAULT uuid_generate_v4();
